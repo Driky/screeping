@@ -6,8 +6,8 @@ declare global {
     // On stocke seulement les noms des actions pour garder la mémoire légère
     plan?: string[];
     currentActionIndex?: number;
-    // On peut aussi stocker l'objectif actuel du creep
     goal?: WorldState;
+    nextPlanTick?: number;
   }
 
   // Permet d'étendre d'autres objets globaux si nécessaire

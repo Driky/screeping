@@ -11,55 +11,95 @@ export class GOAPManager {
         this.actions = actions;
     }
 
-    public run(creep: Creep): void {
-        const currentState = WorldSensor.getCurrentState(creep);
-        let goalState: WorldState = {};
+    /**
+     * Gère le suivi et l'exécution du plan stocké en mémoire
+     */
+    private executePlan(creep: Creep): void {
+        // Sécurité : vérifier si l'index est valide
+        const currentIndex = creep.memory.currentActionIndex || 0;
+        const plan = creep.memory.plan || [];
 
-        switch (creep.memory.role) {
-            case 'harvester':
-                goalState = { targetFull: true };
-                break;
-            case 'upgrader':
-                goalState = { controllerUpgraded: true };
-                break;
-            case 'builder':
-                // S'il n'y a rien à construire, le builder devient un harvester par défaut
-                const sites = creep.room.find(FIND_CONSTRUCTION_SITES);
-                goalState = sites.length > 0 ? { buildTargetDone: true } : { targetFull: true };
-                break;
+        if (currentIndex >= plan.length) {
+            // Plan terminé
+            creep.memory.plan = [];
+            return;
         }
 
-        // 1. Planification si nécessaire
-        if (!creep.memory.plan || creep.memory.plan.length === 0) {
-            const plan = this.planner.buildPlan(creep, this.actions, currentState, goalState);
-            if (plan && plan.length > 0) {
-                creep.memory.plan = plan.map(a => a.name);
-                creep.memory.currentActionIndex = 0;
-                creep.say('Planning...');
-            } else {
-                creep.say('No Plan!');
-                return;
-            }
-        }
-
-        // 2. Exécution
-        const actionName = creep.memory.plan[creep.memory.currentActionIndex || 0];
+        // Trouver l'action correspondante dans notre liste d'actions injectée
+        const actionName = plan[currentIndex];
         const currentAction = this.actions.find(a => a.name === actionName);
 
         if (currentAction) {
+            // Exécuter l'action
             const isFinished = currentAction.execute(creep);
-            if (isFinished) {
-                creep.memory.currentActionIndex!++;
 
-                // Si le plan est fini
-                if (creep.memory.currentActionIndex! >= creep.memory.plan.length) {
+            // Afficher une bulle pour le debug visuel
+            creep.say(currentAction.name);
+
+            if (isFinished) {
+                // Passer à l'action suivante au prochain tick
+                creep.memory.currentActionIndex = currentIndex + 1;
+
+                // Si c'était la dernière action, on nettoie tout de suite
+                if (creep.memory.currentActionIndex >= plan.length) {
                     creep.memory.plan = [];
                     creep.memory.currentActionIndex = 0;
                 }
             }
         } else {
-            // Sécurité : si l'action n'existe pas, on reset
+            // Si l'action n'est pas reconnue (ex: renommage), on reset le plan
             creep.memory.plan = [];
+        }
+    }
+
+    public run(creep: Creep, sources: Source[], sites: ConstructionSite[]): void {
+        // OPTIMISATION 1 : Si le CPU est trop bas (bucket vide), on saute ce tour
+        if (Game.cpu.bucket < 500 && Game.cpu.getUsed() > Game.cpu.limit * 0.8) return;
+
+        // 1. Vérifier si on a déjà un plan en cours
+        if (creep.memory.plan && creep.memory.plan.length > 0) {
+            this.executePlan(creep);
+            return;
+        }
+
+        // 2. Gestion du Cooldown de planification
+        if (creep.memory.nextPlanTick && Game.time < creep.memory.nextPlanTick) {
+            return; // Trop tôt pour replanifier
+        }
+
+        // 3. Tentative de planification
+        const currentState = WorldSensor.getCurrentState(creep, sources, sites);
+        const goalState = this.getGoalByRole(creep);
+
+        const plan = this.planner.buildPlan(creep, this.actions, currentState, goalState);
+
+        if (plan && plan.length > 0) {
+            creep.memory.plan = plan.map(a => a.name);
+            creep.memory.currentActionIndex = 0;
+            delete creep.memory.nextPlanTick; // On efface le cooldown si succès
+        } else {
+            // ÉCHEC : On attend 10 ticks avant de stresser le CPU à nouveau
+            creep.memory.nextPlanTick = Game.time + 10;
+            creep.say('💤 NoPath');
+        }
+    }
+
+    private getGoalByRole(creep: Creep): WorldState {
+
+        switch (creep.memory.role) {
+            case 'harvester':
+                return { targetFull: true };
+
+            case 'upgrader':
+                return{ controllerUpgraded: true };
+
+            case 'builder':
+                // S'il n'y a rien à construire, le builder devient un harvester par défaut
+                const sites = creep.room.find(FIND_CONSTRUCTION_SITES);
+                return sites.length > 0 ? { buildTargetDone: true } : { targetFull: true };
+
+            default:
+                return {};
         }
     }
 }
