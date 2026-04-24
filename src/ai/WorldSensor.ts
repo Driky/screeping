@@ -25,12 +25,11 @@ export class WorldSensor {
         const depositTarget = creep.pos.findClosestByRange(depositTargets);
         state.atTarget = depositTarget ? creep.pos.isNearTo(depositTarget) : false;
 
-        // Proximité Container OU Énergie au sol
         const closeContainer = creep.pos.findClosestByRange(containers);
-        const closeDropped = creep.pos.findClosestByRange(dropped);
+        state.nearContainer = closeContainer ? creep.pos.isNearTo(closeContainer) : false;
 
-        state.nearContainer = (closeContainer ? creep.pos.isNearTo(closeContainer) : false) ||
-                              (closeDropped ? creep.pos.isNearTo(closeDropped) : false);
+        const closeDropped = creep.pos.findClosestByRange(dropped);
+        state.nearDropped = closeDropped ? creep.pos.isNearTo(closeDropped) : false;
 
 
 

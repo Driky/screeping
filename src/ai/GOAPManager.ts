@@ -95,6 +95,9 @@ export class GOAPManager {
             case 'miner':
                 return { targetFull: true };
 
+            case 'hauler':
+                return { targetFull: true };
+
             case 'upgrader':
                 return { controllerUpgraded: true };
 

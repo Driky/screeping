@@ -4,6 +4,7 @@ import { HarvestAction } from "actions/HarvestAction";
 import { MoveToConstructionAction } from "actions/MoveToConstructionAction";
 import { MoveToContainerAction } from "actions/MoveToContainerAction";
 import { MoveToControllerAction } from "actions/MoveToControllerAction";
+import { MoveToDroppedAction } from "actions/MoveToDroppedAction";
 import { MoveToSourceAction } from "actions/MoveToSourceAction";
 import { MoveToTargetAction } from "actions/MoveToTargetAction";
 import { PickupAction } from "actions/PickupAction";
@@ -22,6 +23,7 @@ const allActions: IAction[] = [
     new MoveToConstructionAction(),
     new MoveToContainerAction(),
     new MoveToControllerAction(),
+    new MoveToDroppedAction(),
     new MoveToSourceAction(),
     new MoveToTargetAction(),
     new PickupAction(),

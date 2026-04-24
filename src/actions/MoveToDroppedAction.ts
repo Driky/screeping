@@ -1,21 +1,17 @@
 import { ActionBase } from "./ActionBase";
 import { WorldState } from "../types/goap";
 
-export class PickupAction extends ActionBase {
-    name = "pickup";
+export class MoveToDroppedAction extends ActionBase {
+    name = "moveToDropped";
     roles = ['hauler'];
-    preconditions: WorldState = { nearDropped: true, hasEnergy: false };
-    effects: WorldState = { hasEnergy: true };
+    preconditions: WorldState = { nearDropped: false, hasEnergy: false };
+    effects: WorldState = { nearDropped: true };
 
     public getCost(creep: Creep): number {
         const dropped = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
             filter: r => r.resourceType === RESOURCE_ENERGY
         });
-        if (dropped) {
-            const amountBonus = Math.min(dropped.amount / 100, 5);
-            return 1 - amountBonus;
-        }
-        return 5;
+        return dropped ? creep.pos.getRangeTo(dropped) : 99;
     }
 
     public execute(creep: Creep): boolean {
@@ -23,8 +19,7 @@ export class PickupAction extends ActionBase {
             filter: r => r.resourceType === RESOURCE_ENERGY
         });
         if (!dropped) return true;
-        const result = creep.pickup(dropped);
-        if (result === ERR_NOT_IN_RANGE) return true; // abort, force replan
-        return result === OK || creep.store.getFreeCapacity() === 0;
+        creep.moveTo(dropped, { visualizePathStyle: { stroke: '#ffff00' } });
+        return creep.pos.isNearTo(dropped);
     }
 }
