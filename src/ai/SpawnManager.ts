@@ -37,22 +37,37 @@ export class SpawnManager {
     }
 
     private static generateBody(role: string, energyLimit: number): BodyPartConstant[] {
-        const body: BodyPartConstant[] = [];
-        let cost = 0;
+        let body: BodyPartConstant[] = [];
 
-        // Unité de base : [WORK, CARRY, MOVE] = 200 energy
-        const baseSet: BodyPartConstant[] = [WORK, CARRY, MOVE];
-        const baseCost = 200;
-
-        // On ajoute autant de sets que possible selon la limite d'énergie
-        // On limite à 15 pièces (5 sets) pour ne pas épuiser tout le CPU au début
-        while (cost + baseCost <= energyLimit && body.length < 15) {
-            body.push(...baseSet);
-            cost += baseCost;
+        if (role === 'miner') {
+            // Un mineur a besoin de 5 WORK pour vider une source (2 energy/tick par WORK)
+            // 5 WORK + 1 MOVE = 550 energy.
+            // On commence petit et on ajoute des WORK selon l'énergie.
+            body = [MOVE, WORK, WORK];
+            let cost = 300;
+            while (cost + 100 <= energyLimit && body.filter(p => p === WORK).length < 5) {
+                body.push(WORK);
+                cost += 100;
+            }
+        }
+        else if (role === 'hauler') {
+            // Le transporteur doit être rapide : 1 MOVE pour 1 CARRY
+            // 1 MOVE + 1 CARRY = 100 energy.
+            let cost = 0;
+            while (cost + 100 <= energyLimit && body.length < 20) {
+                body.push(MOVE, CARRY);
+                cost += 100;
+            }
+        }
+        else {
+            // Polyvalent (Upgrader/Builder) : [WORK, CARRY, MOVE]
+            let cost = 0;
+            while (cost + 200 <= energyLimit && body.length < 15) {
+                body.push(WORK, CARRY, MOVE);
+                cost += 200;
+            }
         }
 
-        // Sécurité : si la pièce est vide et qu'on ne peut rien payer,
-        // on retourne au moins un petit corps de survie (300 energy max)
         return body.length > 0 ? body : [WORK, CARRY, MOVE];
     }
 
