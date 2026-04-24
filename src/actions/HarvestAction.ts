@@ -8,6 +8,8 @@ export class HarvestAction extends ActionBase {
     preconditions: WorldState = { atSource: true };
     effects: WorldState = { hasEnergy: true };
 
+    public getCost(creep: Creep): number { return 10; }
+
     public execute(creep: Creep): boolean {
         const source = creep.pos.findClosestByRange(FIND_SOURCES);
         if (source) {

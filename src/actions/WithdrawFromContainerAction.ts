@@ -6,6 +6,8 @@ export class WithdrawAction extends ActionBase {
     preconditions: WorldState = { nearContainer: true, hasEnergy: false };
     effects: WorldState = { hasEnergy: true };
 
+    public getCost(creep: Creep): number { return 3; }
+
     public execute(creep: Creep): boolean {
         const container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
             filter: s => s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 0
