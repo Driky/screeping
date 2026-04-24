@@ -6,6 +6,9 @@ export class SpawnManager {
 
         const creeps = room.find(FIND_MY_CREEPS);
 
+
+        const roomConstructionSites = room.find(FIND_CONSTRUCTION_SITES);
+        console.log("Room: " + room.name + " construction sites: " + roomConstructionSites);
         const quotas: { [role: string]: number } = {
             miner: sources.length,
             hauler: sources.length + 1,
