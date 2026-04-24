@@ -9,7 +9,7 @@ export class MoveToTargetAction extends ActionBase {
 
     public getCost(creep: Creep): number {
         const target = this.findTarget(creep);
-        return target ? creep.pos.getRangeTo(target) : 99;
+        return target ? creep.pos.getRangeTo(target) : 999;
     }
 
     public execute(creep: Creep): boolean {
