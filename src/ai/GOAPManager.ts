@@ -71,7 +71,9 @@ export class GOAPManager {
         const currentState = WorldSensor.getCurrentState(creep, sources, sites, depositTargets, containers, dropped);
         const goalState = this.getGoalByRole(creep);
 
-        const plan = this.planner.buildPlan(creep, this.actions, currentState, goalState);
+        const role = creep.memory.role;
+        const availableActions = this.actions.filter(a => !a.roles || a.roles.includes(role));
+        const plan = this.planner.buildPlan(creep, availableActions, currentState, goalState);
 
         if (plan && plan.length > 0) {
             creep.memory.plan = plan.map(a => a.name);
@@ -90,8 +92,11 @@ export class GOAPManager {
             case 'harvester':
                 return { targetFull: true };
 
+            case 'miner':
+                return { targetFull: true };
+
             case 'upgrader':
-                return{ controllerUpgraded: true };
+                return { controllerUpgraded: true };
 
             case 'builder':
                 const sites = creep.room.find(FIND_CONSTRUCTION_SITES);

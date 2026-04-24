@@ -3,9 +3,8 @@ import { WorldState } from "../types/goap";
 
 export class DropAction extends ActionBase {
     name = "drop";
-    // Pré-condition : avoir de l'énergie et être à la source
+    roles = ['miner'];
     preconditions: WorldState = { hasEnergy: true, atSource: true };
-    // Effet : on considère qu'on a "contribué" à l'énergie de la room (ou simplement vidé l'inventaire)
     effects: WorldState = { targetFull: true };
 
     public getCost(creep: Creep): number {

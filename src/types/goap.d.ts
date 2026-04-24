@@ -15,7 +15,7 @@ export interface IAction {
     name: string;
     preconditions: WorldState;
     effects: WorldState;
-    // On s'assure que le nom est identique ici
+    roles?: string[];
     getCost(creep: Creep): number;
     execute(creep: Creep): boolean;
 }
