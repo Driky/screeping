@@ -1,5 +1,6 @@
 import { BuildAction } from "actions/BuildAction";
 import { DropAction } from "actions/DropAction";
+import { ForceDropAction } from "actions/ForceDropAction";
 import { HarvestAction } from "actions/HarvestAction";
 import { MoveToConstructionAction } from "actions/MoveToConstructionAction";
 import { MoveToContainerAction } from "actions/MoveToContainerAction";
@@ -19,6 +20,7 @@ import { ErrorMapper } from "utils/ErrorMapper";
 const allActions: IAction[] = [
     new BuildAction(),
     new DropAction(),
+    new ForceDropAction(),
     new HarvestAction(),
     new MoveToConstructionAction(),
     new MoveToContainerAction(),

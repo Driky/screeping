@@ -3,6 +3,7 @@ import { WorldState } from "../types/goap";
 
 export class HarvestAction extends ActionBase {
     name = "harvest";
+    roles = ['miner', 'harvester'];
     // On doit être à la source. On ne met plus "hasEnergy: false" pour
     // permettre de continuer à récolter même si on a un peu d'énergie.
     preconditions: WorldState = { atSource: true };

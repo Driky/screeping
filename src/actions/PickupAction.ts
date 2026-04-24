@@ -3,7 +3,7 @@ import { WorldState } from "../types/goap";
 
 export class PickupAction extends ActionBase {
     name = "pickup";
-    roles = ['hauler'];
+    roles = ['hauler', 'builder'];
     preconditions: WorldState = { nearDropped: true, hasEnergy: false };
     effects: WorldState = { hasEnergy: true };
 
