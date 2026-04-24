@@ -3,7 +3,7 @@ import { WorldState } from "../types/goap";
 
 export class MoveToControllerAction extends ActionBase {
     name = "moveToController";
-    preconditions: WorldState = { nearController: false };
+    preconditions: WorldState = { nearController: false, hasEnergy: true };
     effects: WorldState = { nearController: true };
 
     getCost(creep: Creep): number {
