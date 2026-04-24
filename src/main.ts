@@ -33,25 +33,32 @@ export const loop = ErrorMapper.wrapLoop(() => {
         }
     }
 
-    // 2. Spawning
-    const harvesters = _.filter(Game.creeps, (c) => c.memory.role === 'harvester');
-    if (harvesters.length < 2) {
-        Game.spawns['Spawn1'].spawnCreep([WORK, CARRY, MOVE], `H_${Game.time}`,
-            { memory: { role: 'harvester' } });
-    }
-
     // ON CACHE LES DONNÉES UNE FOIS PAR PIÈCE
     for (const roomName in Game.rooms) {
         const room = Game.rooms[roomName];
+
         const sources = room.find(FIND_SOURCES);
         const sites = room.find(FIND_CONSTRUCTION_SITES);
-
-        // On récupère les creeps de cette pièce
         const roomCreeps = _.filter(Game.creeps, (c) => c.room.name === room.name);
 
         for (const creep of roomCreeps) {
+            const startCpu = Game.cpu.getUsed();
             // On passe les données déjà trouvées au manager
             manager.run(creep, sources, sites);
+
+            // Debug CPU (optionnel)
+            const used = Game.cpu.getUsed() - startCpu;
+            if (used > 2) {
+                console.log(`[CPU Warning] ${creep.name} a utilisé ${used.toFixed(2)} units.`);
+            }
+        }
+
+        // 3. Spawning basique (exemple pour 1 Harvester)
+        const spawn = room.find(FIND_MY_SPAWNS)[0];
+        if (spawn && roomCreeps.length < 3 && !spawn.spawning) {
+            spawn.spawnCreep([WORK, CARRY, MOVE], `Worker_${Game.time}`, {
+                memory: { role: 'harvester' }
+            });
         }
     }
 });

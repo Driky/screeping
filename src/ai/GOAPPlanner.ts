@@ -15,27 +15,38 @@ export class GOAPPlanner {
      */
     public buildPlan(creep: Creep, actions: IAction[], start: WorldState, goal: WorldState): IAction[] | null {
         let openList: Node[] = [];
-        let closedList: Node[] = [];
+        let closedList: string[] = [];
 
         // Nœud de départ (notre objectif final)
         openList.push({ state: goal, parent: null, action: null, cost: 0 });
 
+        let iterations = 0;
+        const MAX_ITERATIONS = 100; // Sécurité CPU
+
         while (openList.length > 0) {
+            iterations++;
+            if (iterations > MAX_ITERATIONS) {
+                console.log(`[GOAP] ${creep.name} : Trop d'itérations, abandon.`);
+                return null;
+            }
+
             // Trier par coût (plus petit en premier)
             openList.sort((a, b) => a.cost - b.cost);
             let current = openList.shift()!;
-            closedList.push(current);
 
-            // Vérifier si l'état actuel du nœud est satisfait par notre état "start"
             if (this.inState(current.state, start)) {
                 return this.reconstructPlan(current);
             }
 
+            closedList.push(JSON.stringify(current.state));
+
             // Explorer les actions qui pourraient mener à cet état
-            for (let action of actions) {
+            for (const action of actions) {
                 if (this.canActionSatisfyState(action, current.state)) {
                     // Calculer le nouvel état requis (pré-conditions de l'action)
                     let nextState = { ...current.state, ...action.preconditions };
+
+                    if (closedList.includes(JSON.stringify(nextState))) continue;
 
                     // Ajouter au graphe
                     openList.push({
