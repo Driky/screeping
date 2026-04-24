@@ -39,7 +39,7 @@ export class GOAPPlanner {
             }
 
             closedList.push(JSON.stringify(current.state));
-
+            console.log(`Analyse du noeud: ${JSON.stringify(current.state)}`);
             // Explorer les actions qui pourraient mener à cet état
             for (const action of actions) {
                 if (this.canActionSatisfyState(action, current.state)) {
