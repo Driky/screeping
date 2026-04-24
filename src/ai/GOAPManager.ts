@@ -94,9 +94,13 @@ export class GOAPManager {
                 return{ controllerUpgraded: true };
 
             case 'builder':
-                // S'il n'y a rien à construire, le builder devient un harvester par défaut
                 const sites = creep.room.find(FIND_CONSTRUCTION_SITES);
-                return sites.length > 0 ? { buildTargetDone: true } : { targetFull: true };
+                if (sites.length > 0) return { buildTargetDone: true };
+
+                const repairTarget = creep.room.find(FIND_STRUCTURES, { filter: s => s.hits < s.hitsMax });
+                if (repairTarget.length > 0) return { structureRepaired: true };
+
+                return { targetFull: true };
 
             default:
                 return {};

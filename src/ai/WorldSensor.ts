@@ -38,6 +38,7 @@ export class WorldSensor {
         state.targetFull = false;
         state.controllerUpgraded = false;
         state.buildTargetDone = false;
+        state.structureRepaired = false;
 
         return state;
     }

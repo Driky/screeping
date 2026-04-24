@@ -8,6 +8,7 @@ export type WorldState = {
     targetFull?: boolean;
     controllerUpgraded?: boolean;
     buildTargetDone?: boolean;
+    structureRepaired?: boolean;
 };
 
 export interface IAction {
