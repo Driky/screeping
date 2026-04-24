@@ -4,7 +4,7 @@ export class WorldSensor {
     /**
      * Analyse le creep et son environnement pour générer l'état actuel
      */
-    public static getCurrentState(creep: Creep, sources: Source[], sites: ConstructionSite[], depositTargets: AnyStoreStructure[]): WorldState {
+    public static getCurrentState(creep: Creep, sources: Source[], sites: ConstructionSite[], depositTargets: AnyStoreStructure[], containers: StructureContainer[], dropped: Resource[]): WorldState {
         const state: WorldState = {};
 
         // 1. État des ressources
@@ -25,10 +25,13 @@ export class WorldSensor {
         const depositTarget = creep.pos.findClosestByRange(depositTargets);
         state.atTarget = depositTarget ? creep.pos.isNearTo(depositTarget) : false;
 
-        const container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-            filter: s => s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 0
-        });
-        state.nearContainer = container ? creep.pos.isNearTo(container) : false;
+        // Proximité Container OU Énergie au sol
+        const closeContainer = creep.pos.findClosestByRange(containers);
+        const closeDropped = creep.pos.findClosestByRange(dropped);
+
+        state.nearContainer = (closeContainer ? creep.pos.isNearTo(closeContainer) : false) ||
+                              (closeDropped ? creep.pos.isNearTo(closeDropped) : false);
+
 
 
         // Réinitialisation des objectifs finaux

@@ -48,12 +48,18 @@ export const loop = ErrorMapper.wrapLoop(() => {
             filter: (s) => (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION)
                            && (s as AnyStoreStructure).store.getFreeCapacity(RESOURCE_ENERGY) > 0
         }) as AnyStoreStructure[];
+        const containers = room.find(FIND_STRUCTURES, {
+            filter: s => s.structureType === STRUCTURE_CONTAINER
+        }) as StructureContainer[];
+        const droppedEnergy = room.find(FIND_DROPPED_RESOURCES, {
+            filter: r => r.resourceType === RESOURCE_ENERGY
+        });
         const roomCreeps = _.filter(Game.creeps, (c) => c.room.name === room.name);
 
         for (const creep of roomCreeps) {
             const startCpu = Game.cpu.getUsed();
             // On passe les données déjà trouvées au manager
-            manager.run(creep, sources, sites, depositTargets);
+            manager.run(creep, sources, sites, depositTargets, containers, droppedEnergy);
 
             // Debug CPU (optionnel)
             const used = Game.cpu.getUsed() - startCpu;
