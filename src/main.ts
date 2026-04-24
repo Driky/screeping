@@ -48,9 +48,8 @@ export const loop = ErrorMapper.wrapLoop(() => {
     for (const roomName in Game.rooms) {
         const room = Game.rooms[roomName];
 
-        SpawnManager.run(room);
-
         const sources = room.find(FIND_SOURCES);
+        SpawnManager.run(room, sources);
         const sites = room.find(FIND_CONSTRUCTION_SITES);
         const depositTargets = room.find(FIND_MY_STRUCTURES, {
             filter: (s) => (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION)
@@ -76,12 +75,5 @@ export const loop = ErrorMapper.wrapLoop(() => {
             }
         }
 
-        // 3. Spawning basique (exemple pour 1 Harvester)
-        const spawn = room.find(FIND_MY_SPAWNS)[0];
-        if (spawn && roomCreeps.length < 3 && !spawn.spawning) {
-            spawn.spawnCreep([WORK, CARRY, MOVE], `Worker_${Game.time}`, {
-                memory: { role: 'harvester' }
-            });
-        }
     }
 });

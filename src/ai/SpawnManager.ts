@@ -1,22 +1,22 @@
 export class SpawnManager {
-    private static quotas: { [role: string]: number } = {
-        harvester: 2,
-        upgrader: 2,
-        builder: 1
-    };
-
-    public static run(room: Room): void {
+    public static run(room: Room, sources: Source[]): void {
         const spawns = room.find(FIND_MY_SPAWNS);
         const spawn = spawns.find(s => !s.spawning);
         if (!spawn) return;
 
         const creeps = room.find(FIND_MY_CREEPS);
 
-        for (const role in this.quotas) {
+        const quotas: { [role: string]: number } = {
+            miner: sources.length,
+            hauler: sources.length + 1,
+            upgrader: 1,
+            builder: room.find(FIND_CONSTRUCTION_SITES).length > 0 ? 1 : 0
+        };
+
+        for (const role in quotas) {
             const count = creeps.filter(c => c.memory.role === role).length;
 
-            if (count < this.quotas[role]) {
-                // Utilise l'énergie MAXIMALE (avec extensions) et non l'énergie actuelle
+            if (count < quotas[role]) {
                 this.spawn(spawn, role, room.energyCapacityAvailable);
                 break;
             }
