@@ -6,6 +6,7 @@ import { MoveToTargetAction } from "actions/MoveToTargetAction";
 import { TransferAction } from "actions/TransferAction";
 import { UpgradeControllerAction } from "actions/UpgradeControllerAction";
 import { GOAPManager } from "ai/GOAPManager";
+import { SpawnManager } from "ai/SpawnManager";
 import { IAction } from "types/goap";
 import { ErrorMapper } from "utils/ErrorMapper";
 
@@ -36,6 +37,8 @@ export const loop = ErrorMapper.wrapLoop(() => {
     // ON CACHE LES DONNÉES UNE FOIS PAR PIÈCE
     for (const roomName in Game.rooms) {
         const room = Game.rooms[roomName];
+
+        SpawnManager.run(room);
 
         const sources = room.find(FIND_SOURCES);
         const sites = room.find(FIND_CONSTRUCTION_SITES);
