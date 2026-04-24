@@ -13,5 +13,6 @@
     "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false
   },
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }
