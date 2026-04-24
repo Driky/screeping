@@ -1,10 +1,10 @@
 import { ActionBase } from "./ActionBase";
 import { WorldState } from "../types/goap";
 
-export class PickupAction extends ActionBase {
-    name = "pickup";
-    roles = ['builder'];
-    preconditions: WorldState = { nearDropped: true, hasEnergy: false };
+export class HaulerPickupAction extends ActionBase {
+    name = "haulerPickup";
+    roles = ['hauler'];
+    preconditions: WorldState = { nearDropped: true, hasEnergy: false, nearConstruction: false };
     effects: WorldState = { hasEnergy: true };
 
     public getCost(creep: Creep): number {
@@ -24,7 +24,7 @@ export class PickupAction extends ActionBase {
         });
         if (!dropped) return true;
         const result = creep.pickup(dropped);
-        if (result === ERR_NOT_IN_RANGE) return true; // abort, force replan
+        if (result === ERR_NOT_IN_RANGE) return true;
         return result === OK || creep.store.getFreeCapacity() === 0;
     }
 }
