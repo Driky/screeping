@@ -1,5 +1,6 @@
 import { BuildAction } from "actions/BuildAction";
 import { HarvestAction } from "actions/HarvestAction";
+import { MoveToConstructionAction } from "actions/MoveToConstructionAction";
 import { MoveToControllerAction } from "actions/MoveToControllerAction";
 import { MoveToSourceAction } from "actions/MoveToSourceAction";
 import { MoveToTargetAction } from "actions/MoveToTargetAction";
@@ -17,7 +18,8 @@ const allActions: IAction[] = [
     new MoveToControllerAction(),
     new TransferAction(),
     new BuildAction(),
-    new MoveToTargetAction()
+    new MoveToTargetAction(),
+    new MoveToConstructionAction(),
 ];
 
 const manager = new GOAPManager(allActions);
