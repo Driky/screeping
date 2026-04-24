@@ -25,6 +25,8 @@ export class GOAPManager {
             return;
         }
 
+        this.drawVisualPlan(creep, plan, currentIndex);
+
         // Trouver l'action correspondante dans notre liste d'actions injectée
         const actionName = plan[currentIndex];
         const currentAction = this.actions.find(a => a.name === actionName);
@@ -32,8 +34,6 @@ export class GOAPManager {
         if (currentAction) {
             // Exécuter l'action
             const isFinished = currentAction.execute(creep);
-
-            // Afficher une bulle pour le debug visuel
             creep.say(currentAction.name);
 
             if (isFinished) {
@@ -101,5 +101,18 @@ export class GOAPManager {
             default:
                 return {};
         }
+    }
+
+    private drawVisualPlan(creep: Creep, plan: string[], index: number): void {
+        const remainingActions = plan.slice(index).join(" -> ");
+        creep.room.visual.text(
+            `📋 ${remainingActions}`,
+            creep.pos.x,
+            creep.pos.y - 1,
+            { align: 'center', strokeWidth: 0.5, opacity: 0.7, color: '#ffffff', font: 'Courier New' }
+        );
+
+        // On dessine aussi une ligne vers la destination de l'action en cours
+        // (Optionnel, utile si vous avez les positions en mémoire)
     }
 }

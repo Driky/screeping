@@ -58,6 +58,13 @@ export class GOAPPlanner {
                 }
             }
         }
+
+        if (iterations >= MAX_ITERATIONS) {
+            console.log(`[GOAP] ${creep.name} : ÉCHEC - Trop complexe (Explosion combinatoire)`);
+        } else {
+            console.log(`[GOAP] ${creep.name} : ÉCHEC - Aucun chemin de l'état actuel vers le but.`);
+            console.log(`[GOAP] État actuel: ${JSON.stringify(start)}`);
+        }
         return null; // Aucun plan trouvé
     }
 
