@@ -1,25 +1,33 @@
 import { BuildAction } from "actions/BuildAction";
+import { DropAction } from "actions/DropAction";
 import { HarvestAction } from "actions/HarvestAction";
 import { MoveToConstructionAction } from "actions/MoveToConstructionAction";
+import { MoveToContainerAction } from "actions/MoveToContainerAction";
 import { MoveToControllerAction } from "actions/MoveToControllerAction";
 import { MoveToSourceAction } from "actions/MoveToSourceAction";
 import { MoveToTargetAction } from "actions/MoveToTargetAction";
+import { PickupAction } from "actions/PickupAction";
 import { TransferAction } from "actions/TransferAction";
 import { UpgradeControllerAction } from "actions/UpgradeControllerAction";
+import { WithdrawAction } from "actions/WithdrawFromContainerAction";
 import { GOAPManager } from "ai/GOAPManager";
 import { SpawnManager } from "ai/SpawnManager";
 import { IAction } from "types/goap";
 import { ErrorMapper } from "utils/ErrorMapper";
 
 const allActions: IAction[] = [
-    new HarvestAction(),
-    new MoveToSourceAction(),
-    new UpgradeControllerAction(),
-    new MoveToControllerAction(),
-    new TransferAction(),
     new BuildAction(),
-    new MoveToTargetAction(),
+    new DropAction(),
+    new HarvestAction(),
     new MoveToConstructionAction(),
+    new MoveToContainerAction(),
+    new MoveToControllerAction(),
+    new MoveToSourceAction(),
+    new MoveToTargetAction(),
+    new PickupAction(),
+    new TransferAction(),
+    new UpgradeControllerAction(),
+    new WithdrawAction(),
 ];
 
 const manager = new GOAPManager(allActions);
