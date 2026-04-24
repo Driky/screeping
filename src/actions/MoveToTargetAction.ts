@@ -4,7 +4,7 @@ import { WorldState } from "../types/goap";
 export class MoveToTargetAction extends ActionBase {
     name = "moveToTarget";
     // On a besoin d'énergie pour vouloir aller vers une cible de dépôt
-    preconditions: WorldState = { hasEnergy: true, atTarget: false };
+    preconditions: WorldState = { atTarget: false };
     effects: WorldState = { atTarget: true };
 
     public getCost(creep: Creep): number {

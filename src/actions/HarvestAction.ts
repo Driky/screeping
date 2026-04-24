@@ -3,7 +3,7 @@ import { WorldState } from "../types/goap";
 
 export class HarvestAction extends ActionBase {
     name = "harvest";
-    preconditions: WorldState = { atSource: true, hasEnergy: false };
+    preconditions: WorldState = { atSource: true, };
     effects: WorldState = { hasEnergy: true };
 
     execute(creep: Creep): boolean {
