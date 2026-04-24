@@ -13,7 +13,7 @@ export class SpawnManager {
             miner: sources.length,
             hauler: sources.length + 1,
             upgrader: 1,
-            builder: roomConstructionSites.length > 0 ? 1 : 0,
+            builder: roomConstructionSites.length > 0 ? 2 : 0,
         };
 
         for (const role in quotas) {
