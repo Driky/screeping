@@ -52,7 +52,7 @@ export class GOAPManager {
         }
     }
 
-    public run(creep: Creep, sources: Source[], sites: ConstructionSite[]): void {
+    public run(creep: Creep, sources: Source[], sites: ConstructionSite[], depositTargets: AnyStoreStructure[]): void {
         // OPTIMISATION 1 : Si le CPU est trop bas (bucket vide), on saute ce tour
         if (Game.cpu.bucket < 500 && Game.cpu.getUsed() > Game.cpu.limit * 0.8) return;
 
@@ -68,7 +68,7 @@ export class GOAPManager {
         }
 
         // 3. Tentative de planification
-        const currentState = WorldSensor.getCurrentState(creep, sources, sites);
+        const currentState = WorldSensor.getCurrentState(creep, sources, sites, depositTargets);
         const goalState = this.getGoalByRole(creep);
 
         const plan = this.planner.buildPlan(creep, this.actions, currentState, goalState);

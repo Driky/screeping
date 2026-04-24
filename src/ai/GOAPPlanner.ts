@@ -76,16 +76,19 @@ export class GOAPPlanner {
 
     // Vérifie si toutes les conditions de 'required' sont vraies dans 'current'
     private inState(required: WorldState, current: WorldState): boolean {
+        if (Object.keys(required).length === 0) return true;
+
         for (const key in required) {
             // On ne compare QUE les clés qui sont définies dans 'required'
             const reqVal = required[key as keyof WorldState];
             const curVal = current[key as keyof WorldState];
 
-            if (reqVal !== undefined) {
-                // Si le sensor (current) n'a pas la valeur ou qu'elle est différente
-                if (curVal !== reqVal) {
-                    return false;
-                }
+            // On ignore les clés non définies
+            if (reqVal === undefined) continue;
+
+            // Comparaison stricte des booléens
+            if (curVal !== reqVal) {
+                return false;
             }
         }
         return true;
