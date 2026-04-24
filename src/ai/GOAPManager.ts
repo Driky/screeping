@@ -69,11 +69,16 @@ export class GOAPManager {
 
         // 3. Tentative de planification
         const currentState = WorldSensor.getCurrentState(creep, sources, sites, depositTargets, containers, dropped);
-        const goalState = this.getGoalByRole(creep);
+        const goals = this.getGoalsByRole(creep, depositTargets, containers, sites);
 
         const role = creep.memory.role;
         const availableActions = this.actions.filter(a => !a.roles || a.roles.includes(role));
-        const plan = this.planner.buildPlan(creep, availableActions, currentState, goalState);
+
+        let plan: IAction[] | null = null;
+        for (const goal of goals) {
+            plan = this.planner.buildPlan(creep, availableActions, currentState, goal);
+            if (plan && plan.length > 0) break;
+        }
 
         if (plan && plan.length > 0) {
             creep.memory.plan = plan.map(a => a.name);
@@ -86,32 +91,27 @@ export class GOAPManager {
         }
     }
 
-    private getGoalByRole(creep: Creep): WorldState {
-
+    private getGoalsByRole(creep: Creep, _depositTargets: AnyStoreStructure[], _containers: StructureContainer[], sites: ConstructionSite[]): WorldState[] {
         switch (creep.memory.role) {
             case 'harvester':
-                return { targetFull: true };
-
             case 'miner':
-                return { targetFull: true };
-
             case 'hauler':
-                return { targetFull: true };
+                return [{ targetFull: true }];
 
             case 'upgrader':
-                return { controllerUpgraded: true };
+                return [{ controllerUpgraded: true }];
 
-            case 'builder':
-                const sites = creep.room.find(FIND_CONSTRUCTION_SITES);
-                if (sites.length > 0) return { buildTargetDone: true };
-
-                const repairTarget = creep.room.find(FIND_STRUCTURES, { filter: s => s.hits < s.hitsMax });
-                if (repairTarget.length > 0) return { structureRepaired: true };
-
-                return { targetFull: true };
+            case 'builder': {
+                const goals: WorldState[] = [];
+                if (sites.length > 0) goals.push({ buildTargetDone: true });
+                const repairTargets = creep.room.find(FIND_STRUCTURES, { filter: s => s.hits < s.hitsMax });
+                if (repairTargets.length > 0) goals.push({ structureRepaired: true });
+                goals.push({ targetFull: true });
+                return goals;
+            }
 
             default:
-                return {};
+                return [{}];
         }
     }
 

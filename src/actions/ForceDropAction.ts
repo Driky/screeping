@@ -3,7 +3,7 @@ import { WorldState } from "../types/goap";
 
 export class ForceDropAction extends ActionBase {
     name = "forceDrop";
-    roles = ['hauler'];
+    roles = ['hauler', 'harvester'];
     preconditions: WorldState = { hasEnergy: true, nearConstruction: true };
     effects: WorldState = { targetFull: true };
 
