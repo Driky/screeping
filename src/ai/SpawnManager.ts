@@ -8,12 +8,12 @@ export class SpawnManager {
 
 
         const roomConstructionSites = room.find(FIND_CONSTRUCTION_SITES);
-        console.log("Room: " + room.name + " construction sites: " + roomConstructionSites);
+        // console.log("Room: " + room.name + " construction sites: " + roomConstructionSites);
         const quotas: { [role: string]: number } = {
             miner: sources.length,
             hauler: sources.length + 1,
             upgrader: 1,
-            builder: room.find(FIND_CONSTRUCTION_SITES).length > 0 ? 1 : 0
+            builder: roomConstructionSites.length > 0 ? 1 : 0,
         };
 
         for (const role in quotas) {
