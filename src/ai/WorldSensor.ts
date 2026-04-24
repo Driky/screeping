@@ -25,6 +25,12 @@ export class WorldSensor {
         const depositTarget = creep.pos.findClosestByRange(depositTargets);
         state.atTarget = depositTarget ? creep.pos.isNearTo(depositTarget) : false;
 
+        const container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+            filter: s => s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 0
+        });
+        state.nearContainer = container ? creep.pos.isNearTo(container) : false;
+
+
         // Réinitialisation des objectifs finaux
         state.targetFull = false;
         state.controllerUpgraded = false;

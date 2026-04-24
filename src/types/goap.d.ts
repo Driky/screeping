@@ -3,7 +3,8 @@ export type WorldState = {
     atSource?: boolean;
     atTarget?: boolean;
     nearController?: boolean;
-        nearConstruction?: boolean;
+    nearConstruction?: boolean;
+    nearContainer?: boolean;
     targetFull?: boolean;
     controllerUpgraded?: boolean;
     buildTargetDone?: boolean;
