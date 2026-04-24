@@ -3,17 +3,22 @@ import { WorldState } from "../types/goap";
 
 export class HarvestAction extends ActionBase {
     name = "harvest";
-    preconditions: WorldState = { atSource: true, };
+    // On doit être à la source. On ne met plus "hasEnergy: false" pour
+    // permettre de continuer à récolter même si on a un peu d'énergie.
+    preconditions: WorldState = { atSource: true };
     effects: WorldState = { hasEnergy: true };
 
-    execute(creep: Creep): boolean {
+    public execute(creep: Creep): boolean {
         const source = creep.pos.findClosestByRange(FIND_SOURCES);
         if (source) {
             const result = creep.harvest(source);
+
             if (result === OK) {
+                // L'action est "finie" quand le creep est plein.
+                // Pour un mineur statique, il passera alors à l'action "Drop".
                 return creep.store.getFreeCapacity() === 0;
             }
         }
-        return true; // Terminé si erreur ou source vide
+        return true;
     }
 }
