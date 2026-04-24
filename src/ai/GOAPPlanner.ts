@@ -43,8 +43,14 @@ export class GOAPPlanner {
             // Explorer les actions qui pourraient mener à cet état
             for (const action of actions) {
                 if (this.canActionSatisfyState(action, current.state)) {
-                    // Calculer le nouvel état requis (pré-conditions de l'action)
-                    let nextState = { ...current.state, ...action.preconditions };
+
+                    let nextState = { ...current.state };
+
+                    for (const effect in action.effects) {
+                        delete nextState[effect as keyof WorldState];
+                    }
+
+                    nextState = { ...nextState, ...action.preconditions };
 
                     if (closedList.includes(JSON.stringify(nextState))) continue;
 
