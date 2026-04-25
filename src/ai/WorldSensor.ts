@@ -32,6 +32,10 @@ export class WorldSensor {
 
         const closeDropped = creep.pos.findClosestByRange(dropped);
         state.nearDropped = closeDropped ? creep.pos.isNearTo(closeDropped) : false;
+        if (creep.memory.role === 'hauler') {
+            const dist = closeDropped ? creep.pos.getRangeTo(closeDropped) : -1;
+            console.log(`[Sensor] ${creep.name} nearDropped=${state.nearDropped} closest=${closeDropped ? closeDropped.pos : 'none'} dist=${dist} amount=${closeDropped?.amount ?? 0}`);
+        }
 
 
 

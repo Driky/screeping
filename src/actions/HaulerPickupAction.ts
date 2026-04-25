@@ -4,13 +4,11 @@ import { WorldState } from "../types/goap";
 export class HaulerPickupAction extends ActionBase {
     name = "haulerPickup";
     roles = ['hauler'];
-    preconditions: WorldState = { nearDropped: true, hasEnergy: false, nearConstruction: false };
+    preconditions: WorldState = { nearDropped: true, hasEnergy: false };
     effects: WorldState = { hasEnergy: true };
 
     public getCost(creep: Creep): number {
-        const dropped = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
-            filter: r => r.resourceType === RESOURCE_ENERGY
-        });
+        const dropped = this.findDropped(creep);
         if (dropped) {
             const amountBonus = Math.min(dropped.amount / 100, 5);
             return 1 - amountBonus;
@@ -19,12 +17,34 @@ export class HaulerPickupAction extends ActionBase {
     }
 
     public execute(creep: Creep): boolean {
-        const dropped = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
+        // Cooldown after a forced drop to break the forceDrop→pickup loop
+        if (creep.memory.lastForceDropTick && Game.time - creep.memory.lastForceDropTick < 10) {
+            console.log(`[HaulerPickup] ${creep.name} cooldown (lastDrop=${creep.memory.lastForceDropTick} now=${Game.time}), clearing plan`);
+            creep.memory.plan = [];
+            return true;
+        }
+        const dropped = this.findDropped(creep);
+        console.log(`[HaulerPickup] ${creep.name} target=${dropped ? `${dropped.pos} amount=${dropped.amount} dist=${creep.pos.getRangeTo(dropped)}` : 'null'}`);
+        if (!dropped) { creep.memory.plan = []; return true; }
+        const result = creep.pickup(dropped);
+        console.log(`[HaulerPickup] ${creep.name} pickup result=${result}`);
+        if (result === ERR_NOT_IN_RANGE) { creep.memory.plan = []; return true; }
+        return result === OK || creep.store.getFreeCapacity() === 0;
+    }
+
+    private findDropped(creep: Creep): Resource | null {
+        const all = creep.room.find(FIND_DROPPED_RESOURCES, {
             filter: r => r.resourceType === RESOURCE_ENERGY
         });
-        if (!dropped) return true;
-        const result = creep.pickup(dropped);
-        if (result === ERR_NOT_IN_RANGE) return true;
-        return result === OK || creep.store.getFreeCapacity() === 0;
+        if (!all.length) return null;
+
+        if (creep.memory.assignedSourceId) {
+            const source = Game.getObjectById(creep.memory.assignedSourceId);
+            if (source) {
+                const zoned = all.filter(r => source.pos.getRangeTo(r) <= 3);
+                if (zoned.length) return creep.pos.findClosestByRange(zoned);
+            }
+        }
+        return creep.pos.findClosestByRange(all);
     }
 }

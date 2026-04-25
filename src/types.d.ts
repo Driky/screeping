@@ -10,6 +10,7 @@ declare global {
     currentActionIndex?: number;
     goal?: WorldState;
     nextPlanTick?: number;
+    lastForceDropTick?: number;
   }
 
   // Permet d'étendre d'autres objets globaux si nécessaire

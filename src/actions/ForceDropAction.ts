@@ -13,6 +13,7 @@ export class ForceDropAction extends ActionBase {
 
     public execute(creep: Creep): boolean {
         creep.drop(RESOURCE_ENERGY);
+        creep.memory.lastForceDropTick = Game.time;
         return true;
     }
 }

@@ -32,7 +32,14 @@ export class GOAPManager {
 
         // Guard: if world state diverged from what the plan assumed, replan
         if (!this.arePreconditionsMet(currentAction, currentState)) {
-            console.log(`[GOAP] ${creep.name}: preconditions for '${actionName}' not met, replanning`);
+            if (creep.memory.role === 'hauler') {
+                for (const key in currentAction.preconditions) {
+                    const k = key as keyof WorldState;
+                    if (currentState[k] !== currentAction.preconditions[k]) {
+                        console.log(`[GOAP] ${creep.name}: '${actionName}' failed on key='${key}' expected=${currentAction.preconditions[k]} got=${currentState[k]}`);
+                    }
+                }
+            }
             creep.memory.plan = [];
             creep.memory.currentActionIndex = 0;
             delete creep.memory.nextPlanTick;
@@ -90,6 +97,9 @@ export class GOAPManager {
         }
 
         if (plan && plan.length > 0) {
+            if (creep.memory.role === 'hauler') {
+                console.log(`[GOAP] ${creep.name} new plan: [${plan.map(a => a.name).join(' -> ')}]`);
+            }
             creep.memory.plan = plan.map(a => a.name);
             creep.memory.currentActionIndex = 0;
             delete creep.memory.nextPlanTick; // On efface le cooldown si succès
