@@ -1,55 +1,95 @@
-# Screeps Typescript Starter
+# Screeping
 
-Screeps Typescript Starter is a starting point for a Screeps AI written in Typescript. It provides everything you need to start writing your AI whilst leaving `main.ts` as empty as possible.
+A self-sustaining Screeps colony AI written in TypeScript, driven by a GOAP (Goal-Oriented Action Planning) engine. Targets automated RCL 1→8 progression with full economic self-management and room defense.
 
-## Basic Usage
+## Dev Setup
 
-You will need:
-
-- [Node.JS](https://nodejs.org/en/download) (10.x || 12.x)
-- A Package Manager ([Yarn](https://yarnpkg.com/en/docs/getting-started) or [npm](https://docs.npmjs.com/getting-started/installing-node))
-- Rollup CLI (Optional, install via `npm install -g rollup`)
-
-Download the latest source [here](https://github.com/screepers/screeps-typescript-starter/archive/master.zip) and extract it to a folder.
-
-Open the folder in your terminal and run your package manager to install the required packages and TypeScript declaration files:
+**Prerequisites:** Node.js 18+, pnpm
 
 ```bash
-# npm
-npm install
-
-# yarn
-yarn
+pnpm install
+cp screeps.sample.json screeps.json   # fill in your token/username
 ```
 
-Fire up your preferred editor with typescript installed and you are good to go!
+**Workflow:**
 
-### Rollup and code upload
+```bash
+pnpm exec tsc --noEmit          # type-check
+pnpm run push-main              # build + deploy to main shard
+pnpm run watch-main             # watch + auto-push on save
+```
 
-Screeps Typescript Starter uses rollup to compile your typescript and upload it to a screeps server.
+`screeps.json` holds server destinations (main, pserver, sim). Each key maps to a `rollup --environment DEST:<key>` build target.
 
-Move or copy `screeps.sample.json` to `screeps.json` and edit it, changing the credentials and optionally adding or removing some of the destinations.
+## Architecture
 
-Running `rollup -c` will compile your code and do a "dry run", preparing the code for upload but not actually pushing it. Running `rollup -c --environment DEST:main` will compile your code, and then upload it to a screeps server using the `main` config from `screeps.json`.
+```
+main.ts
+├── ConstructionManager.run(room)   every 50 ticks — auto-place sites by RCL
+├── TowerManager.run(room)          every tick — towers attack/heal/repair
+├── SpawnManager.run(room, ...)     every tick — dynamic quota spawning
+└── GOAPManager.run(creep, ...)     every tick per creep — plan + execute
+```
 
-You can use `-cw` instead of `-c` to automatically re-run when your source code changes - for example, `rollup -cw --environment DEST:main` will automatically upload your code to the `main` configuration every time your code is changed.
+### GOAP Engine
 
-Finally, there are also NPM scripts that serve as aliases for these commands in `package.json` for IDE integration. Running `npm run push-main` is equivalent to `rollup -c --environment DEST:main`, and `npm run watch-sim` is equivalent to `rollup -cw --dest sim`.
+Each creep plans its own action sequence each tick using a backward A\* planner:
 
-#### Important! To upload code to a private server, you must have [screepsmod-auth](https://github.com/ScreepsMods/screepsmod-auth) installed and configured!
+1. **WorldSensor** reads the game state into a flat `WorldState` record (`hasEnergy`, `nearContainer`, `nearStorage`, `nearEnemy`, …).
+2. **GOAPPlanner** searches backward from the creep's goal (e.g. `{ targetFull: true }`) through available actions using `f = g + h` (cost-so-far + unsatisfied-state-count heuristic).
+3. The resulting plan is stored in `creep.memory.plan` and executed action-by-action. If world state diverges from what an action assumed, the creep replans immediately.
 
-## Typings
+**Actions** (`src/actions/`) implement `IAction`:
+- `preconditions` — WorldState that must hold before the action runs
+- `effects` — WorldState changes the action produces
+- `roles` — which roles can use this action (omit = all roles)
+- `getCost(creep)` — typically distance, so the planner prefers closer targets
+- `execute(creep)` — returns `true` when the action is complete
 
-The type definitions for Screeps come from [typed-screeps](https://github.com/screepers/typed-screeps). If you find a problem or have a suggestion, please open an issue there.
+### Roles and Goals
 
-## Documentation
+| Role | Goal | Key actions |
+|---|---|---|
+| harvester | `targetFull` | harvest → transfer to spawn/extension |
+| miner | `targetFull` | harvest → drop near container |
+| hauler | `targetFull` | pickup/withdraw → transfer to spawn/extension/storage/link/tower |
+| upgrader | `controllerUpgraded` | withdraw (container/storage/link) → upgrade controller |
+| builder | `buildTargetDone` | withdraw → build; fallback to repair or transfer |
+| repairer | `structureRepaired` | withdraw → repair |
+| defender | `enemyDead` | move to enemy → attack |
 
-We've also spent some time reworking the documentation from the ground-up, which is now generated through [Gitbooks](https://www.gitbook.com/). Includes all the essentials to get you up and running with Screeps AI development in TypeScript, as well as various other tips and tricks to further improve your development workflow.
+### Managers
 
-Maintaining the docs will also become a more community-focused effort, which means you too, can take part in improving the docs for this starter kit.
+| Manager | Responsibility |
+|---|---|
+| **SpawnManager** | Dynamic quotas per role; bootstrap guard prevents deadlock when all creeps die; bodies sized to `energyCapacityAvailable` |
+| **ConstructionManager** | Places extensions/containers/towers/storage/terminal as RCL rises; max 5 queued sites |
+| **TowerManager** | Towers attack nearest hostile, heal most-damaged friendly, repair structures below 50% hits |
 
-To visit the docs, [click here](https://screepers.gitbook.io/screeps-typescript-starter/).
+### Key Files
 
-## Contributing
+```
+src/
+  main.ts                     — entry point, wires all managers and actions
+  ai/
+    GOAPPlanner.ts            — backward A* planner
+    GOAPManager.ts            — per-creep plan/execute loop + goal definitions
+    WorldSensor.ts            — game state → WorldState
+    SpawnManager.ts           — spawn logic + body generation
+    ConstructionManager.ts    — RCL-gated site placement
+    TowerManager.ts           — tower combat/repair loop
+  actions/                    — one file per IAction implementation
+  types/
+    goap.d.ts                 — WorldState type + IAction interface
+  types.d.ts                  — CreepMemory + Memory extensions
+```
 
-Issues, Pull Requests, and contribution to the docs are welcome! See our [Contributing Guidelines](CONTRIBUTING.md) for more details.
+## Runtime Flags (Memory)
+
+Set via the Screeps console:
+
+```js
+Memory.debug = true          // verbose GOAP planner + sensor logs
+Memory.sayEnabled = true     // creeps say their current action
+Memory.sayRoleFilter = 'hauler'  // limit say to one role (or array)
+```
