@@ -20,19 +20,27 @@ export class SpawnManager {
             const count = creeps.filter(c => c.memory.role === role).length;
 
             if (count < quotas[role]) {
-                this.spawn(spawn, role, room.energyAvailable);
+                let sourceId: Id<Source> | undefined;
+                if (role === 'miner') {
+                    const taken = creeps
+                        .filter(c => c.memory.role === 'miner' && c.memory.sourceId)
+                        .map(c => c.memory.sourceId as Id<Source>);
+                    sourceId = sources.find(s => !taken.includes(s.id))?.id;
+                }
+                this.spawn(spawn, role, room.energyAvailable, sourceId);
                 break;
             }
         }
     }
 
-    private static spawn(spawn: StructureSpawn, role: string, energyLimit: number): void {
+    private static spawn(spawn: StructureSpawn, role: string, energyLimit: number, sourceId?: Id<Source>): void {
         const name = `${role}_${Game.time}`;
         const body = this.generateBody(role, energyLimit);
+        const memory: CreepMemory = { role, ...(sourceId !== undefined && { sourceId }) };
 
         // On essaie de spawn, si on n'a pas assez d'énergie actuelle,
         // le spawn attendra simplement d'être rempli par les harvesters.
-        const result = spawn.spawnCreep(body, name, { memory: { role: role } });
+        const result = spawn.spawnCreep(body, name, { memory });
 
         if (result === OK) {
             console.log(`[Spawn] Nouveau ${role} (Coût: ${this.getBodyCost(body)}) : ${name}`);

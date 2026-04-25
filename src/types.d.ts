@@ -3,6 +3,7 @@ import { WorldState } from "./types/goap";
 declare global {
   interface CreepMemory {
     role: string;
+    sourceId?: Id<Source>;
     // On stocke seulement les noms des actions pour garder la mémoire légère
     plan?: string[];
     currentActionIndex?: number;

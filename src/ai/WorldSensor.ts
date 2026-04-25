@@ -11,8 +11,10 @@ export class WorldSensor {
         state.hasEnergy = creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0;
 
         // 2. Proximité de la Source d'énergie
-        const closestSource = creep.pos.findClosestByRange(sources);
-        state.atSource = closestSource ? creep.pos.isNearTo(closestSource) : false;
+        const mySource = creep.memory.sourceId
+            ? Game.getObjectById(creep.memory.sourceId)
+            : creep.pos.findClosestByRange(sources);
+        state.atSource = mySource ? creep.pos.isNearTo(mySource) : false;
 
         // 3. Proximité du Controller
         state.nearController = creep.room.controller ? creep.pos.isNearTo(creep.room.controller) : false;
