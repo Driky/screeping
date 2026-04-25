@@ -14,16 +14,24 @@ export class MoveToContainerAction extends ActionBase {
 
     public execute(creep: Creep): boolean {
         const container = this.findContainer(creep);
-        if (container) {
-            creep.moveTo(container, { visualizePathStyle: { stroke: '#00ffff' } });
-            return creep.pos.isNearTo(container);
-        }
-        return true;
+        if (!container) { creep.memory.plan = []; return true; }
+        creep.moveTo(container, { visualizePathStyle: { stroke: '#00ffff' } });
+        return creep.pos.isNearTo(container);
     }
 
     private findContainer(creep: Creep): StructureContainer | null {
-        return creep.pos.findClosestByRange(FIND_STRUCTURES, {
+        const all = creep.room.find(FIND_STRUCTURES, {
             filter: s => s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 0
-        }) as StructureContainer;
+        }) as StructureContainer[];
+        if (!all.length) return null;
+
+        if (creep.memory.assignedSourceId) {
+            const source = Game.getObjectById(creep.memory.assignedSourceId);
+            if (source) {
+                const zoned = all.filter(c => source.pos.getRangeTo(c) <= 3);
+                if (zoned.length) return creep.pos.findClosestByRange(zoned);
+            }
+        }
+        return creep.pos.findClosestByRange(all);
     }
 }

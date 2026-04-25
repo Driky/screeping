@@ -8,18 +8,30 @@ export class MoveToDroppedAction extends ActionBase {
     effects: WorldState = { nearDropped: true };
 
     public getCost(creep: Creep): number {
-        const dropped = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
-            filter: r => r.resourceType === RESOURCE_ENERGY
-        });
+        const dropped = this.findDropped(creep);
         return dropped ? creep.pos.getRangeTo(dropped) : 99;
     }
 
     public execute(creep: Creep): boolean {
-        const dropped = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
+        const dropped = this.findDropped(creep);
+        if (!dropped) { creep.memory.plan = []; return true; }
+        creep.moveTo(dropped, { range: 1, visualizePathStyle: { stroke: '#ffff00' } });
+        return creep.pos.isNearTo(dropped);
+    }
+
+    private findDropped(creep: Creep): Resource | null {
+        const all = creep.room.find(FIND_DROPPED_RESOURCES, {
             filter: r => r.resourceType === RESOURCE_ENERGY
         });
-        if (!dropped) return true;
-        creep.moveTo(dropped, { visualizePathStyle: { stroke: '#ffff00' } });
-        return creep.pos.isNearTo(dropped);
+        if (!all.length) return null;
+
+        if (creep.memory.assignedSourceId) {
+            const source = Game.getObjectById(creep.memory.assignedSourceId);
+            if (source) {
+                const zoned = all.filter(r => source.pos.getRangeTo(r) <= 3);
+                if (zoned.length) return creep.pos.findClosestByRange(zoned);
+            }
+        }
+        return creep.pos.findClosestByRange(all);
     }
 }

@@ -27,16 +27,32 @@ export class SpawnManager {
                         .map(c => c.memory.sourceId as Id<Source>);
                     sourceId = sources.find(s => !taken.includes(s.id))?.id;
                 }
-                this.spawn(spawn, role, room.energyAvailable, sourceId);
+                let assignedSourceId: Id<Source> | undefined;
+                if (role === 'hauler') {
+                    const counts = new Map(sources.map(s => [s.id, 0]));
+                    creeps
+                        .filter(c => c.memory.role === 'hauler' && c.memory.assignedSourceId)
+                        .forEach(c => {
+                            const sid = c.memory.assignedSourceId!;
+                            counts.set(sid, (counts.get(sid) ?? 0) + 1);
+                        });
+                    assignedSourceId = [...counts.entries()]
+                        .sort((a, b) => a[1] - b[1])[0]?.[0] as Id<Source> | undefined;
+                }
+                this.spawn(spawn, role, room.energyAvailable, sourceId, assignedSourceId);
                 break;
             }
         }
     }
 
-    private static spawn(spawn: StructureSpawn, role: string, energyLimit: number, sourceId?: Id<Source>): void {
+    private static spawn(spawn: StructureSpawn, role: string, energyLimit: number, sourceId?: Id<Source>, assignedSourceId?: Id<Source>): void {
         const name = `${role}_${Game.time}`;
         const body = this.generateBody(role, energyLimit);
-        const memory: CreepMemory = { role, ...(sourceId !== undefined && { sourceId }) };
+        const memory: CreepMemory = {
+            role,
+            ...(sourceId !== undefined && { sourceId }),
+            ...(assignedSourceId !== undefined && { assignedSourceId }),
+        };
 
         // On essaie de spawn, si on n'a pas assez d'énergie actuelle,
         // le spawn attendra simplement d'être rempli par les harvesters.
