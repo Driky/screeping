@@ -1,4 +1,5 @@
 import { IAction, WorldState } from "../types/goap";
+import { log } from "../utils/Logger";
 
 interface Node {
     state: WorldState;
@@ -26,7 +27,7 @@ export class GOAPPlanner {
         while (openList.length > 0) {
             iterations++;
             if (iterations > MAX_ITERATIONS) {
-                console.log(`[GOAP] ${creep.name} : Trop d'itérations, abandon.`);
+                log('goaplanner', `${creep.name}: max iterations reached, aborting`, 'warn');
                 return null;
             }
 
@@ -41,9 +42,7 @@ export class GOAPPlanner {
             }
 
             closedList.push(JSON.stringify(current.state));
-            if (Memory.debug) {
-                console.log(`[GOAP] ${creep.name} (${creep.memory.role}) node: ${JSON.stringify(current.state)}`);
-            }
+            log('goaplanner', `${creep.name} (${creep.memory.role}) node: ${JSON.stringify(current.state)}`, 'debug');
             // Explorer les actions qui pourraient mener à cet état
             for (const action of actions) {
                 if (this.canActionSatisfyState(action, current.state)) {
@@ -70,12 +69,11 @@ export class GOAPPlanner {
         }
 
         if (iterations >= MAX_ITERATIONS) {
-            console.log(`[GOAP] ${creep.name} : ÉCHEC - Trop complexe (Explosion combinatoire)`);
+            log('goaplanner', `${creep.name}: no plan — combinatorial explosion`, 'warn');
         } else {
-            console.log(`[GOAP] ${creep.name} : ÉCHEC - Aucun chemin de l'état actuel vers le but.`);
-            console.log(`[GOAP] État actuel: ${JSON.stringify(start)}`);
+            log('goaplanner', `${creep.name}: no plan — no path to goal. State: ${JSON.stringify(start)}`, 'warn');
         }
-        return null; // Aucun plan trouvé
+        return null;
     }
 
     private heuristic(nodeState: WorldState, currentState: WorldState): number {

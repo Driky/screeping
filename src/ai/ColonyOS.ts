@@ -1,3 +1,5 @@
+import { log } from "../utils/Logger";
+
 export class ColonyOS {
     private static readonly SURVEY_EXPIRY_TICKS = 1000;
 
@@ -49,7 +51,7 @@ export class ColonyOS {
         // Check if the target is already ours
         const targetRoom = Game.rooms[expansionTarget];
         if (targetRoom?.controller?.my) {
-            console.log(`[Colony] ${expansionTarget} claimed — clearing expansion target`);
+            log('colony', `${expansionTarget} claimed — clearing expansion target`);
             colony.expansionTarget = undefined;
             return;
         }
@@ -81,7 +83,7 @@ export class ColonyOS {
                     homeRoom,
                     targetRoom: expansionTarget,
                 });
-                console.log(`[Colony] Queued claimer from ${homeRoom} → ${expansionTarget}`);
+                log('colony', `Queued claimer from ${homeRoom} → ${expansionTarget}`);
             }
         }
     }

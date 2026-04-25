@@ -1,3 +1,5 @@
+import { log } from "../utils/Logger";
+
 export class ScoutRole {
     private static readonly SURVEY_EXPIRY_TICKS = 1000;
 
@@ -27,7 +29,7 @@ export class ScoutRole {
     private static moveToward(creep: Creep, targetRoom: string): void {
         const exit = creep.room.findExitTo(targetRoom);
         if (exit === ERR_NO_PATH || exit === ERR_INVALID_ARGS) {
-            console.log(`[Scout] ${creep.name}: no path to ${targetRoom}`);
+            log('scout', `${creep.name}: no path to ${targetRoom}`, 'warn');
             delete creep.memory.targetRoom;
             return;
         }
@@ -36,11 +38,13 @@ export class ScoutRole {
     }
 
     private static pickTarget(creep: Creep): string | null {
+        const homeRoom = creep.memory.homeRoom ?? creep.room.name;
         const surveyed = Memory.colony!.surveyedRooms;
-        const exits = Game.map.describeExits(creep.room.name);
+        const exits = Game.map.describeExits(homeRoom);
         for (const dir in exits) {
             const roomName = exits[dir as unknown as ExitKey];
             if (!roomName) continue;
+            if (roomName === homeRoom) continue;
             const survey = surveyed[roomName];
             if (!survey || Game.time - survey.lastSurveyTick > this.SURVEY_EXPIRY_TICKS) {
                 return roomName;
@@ -63,8 +67,8 @@ export class ScoutRole {
             lastSurveyTick: Game.time,
         };
 
-        console.log(
-            `[Scout] Surveyed ${room.name}: ` +
+        log('scout',
+            `Surveyed ${room.name}: ` +
             `sources=${sources.length} ` +
             `owner=${controller?.owner?.username ?? 'none'} ` +
             `reserved=${controller?.reservation?.username ?? 'none'} ` +

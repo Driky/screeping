@@ -2,6 +2,7 @@ import { IAction, WorldState } from "../types/goap";
 import { GOAPPlanner } from "./GOAPPlanner";
 import { WorldSensor } from "./WorldSensor";
 import { creepSay } from "../utils/CreepSpeech";
+import { log } from "../utils/Logger";
 
 export class GOAPManager {
     private planner: GOAPPlanner;
@@ -33,12 +34,10 @@ export class GOAPManager {
 
         // Guard: if world state diverged from what the plan assumed, replan
         if (!this.arePreconditionsMet(currentAction, currentState)) {
-            if (Memory.debug && creep.memory.role === 'hauler') {
-                for (const key in currentAction.preconditions) {
-                    const k = key as keyof WorldState;
-                    if (currentState[k] !== currentAction.preconditions[k]) {
-                        console.log(`[GOAP] ${creep.name}: '${actionName}' failed on key='${key}' expected=${currentAction.preconditions[k]} got=${currentState[k]}`);
-                    }
+            for (const key in currentAction.preconditions) {
+                const k = key as keyof WorldState;
+                if (currentState[k] !== currentAction.preconditions[k]) {
+                    log('manager', `${creep.name}: '${actionName}' failed on key='${key}' expected=${currentAction.preconditions[k]} got=${currentState[k]}`, 'debug', creep.memory.role);
                 }
             }
             creep.memory.plan = [];
@@ -98,9 +97,7 @@ export class GOAPManager {
         }
 
         if (plan && plan.length > 0) {
-            if (Memory.debug && creep.memory.role === 'hauler') {
-                console.log(`[GOAP] ${creep.name} new plan: [${plan.map(a => a.name).join(' -> ')}]`);
-            }
+            log('manager', `${creep.name} new plan: [${plan.map(a => a.name).join(' -> ')}]`, 'info', creep.memory.role);
             creep.memory.plan = plan.map(a => a.name);
             creep.memory.currentActionIndex = 0;
             delete creep.memory.nextPlanTick; // On efface le cooldown si succès

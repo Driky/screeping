@@ -1,4 +1,5 @@
 import { WorldState } from "types/goap";
+import { log } from "utils/Logger";
 
 export class WorldSensor {
     /**
@@ -27,8 +28,9 @@ export class WorldSensor {
         const depositTarget = creep.pos.findClosestByRange(depositTargets);
         state.atTarget = depositTarget ? creep.pos.isNearTo(depositTarget) : false;
 
-        const closeContainer = creep.pos.findClosestByRange(containers);
-        state.nearContainer = closeContainer ? creep.pos.isNearTo(closeContainer) : false;
+        const energyContainers = containers.filter(c => c.store[RESOURCE_ENERGY] > 0);
+        const closeContainer = creep.pos.findClosestByRange(energyContainers);
+        state.nearContainerWithEnergy = closeContainer ? creep.pos.isNearTo(closeContainer) : false;
 
         const closeDropped = creep.pos.findClosestByRange(dropped);
         state.nearDropped = closeDropped ? creep.pos.isNearTo(closeDropped) : false;
@@ -57,9 +59,9 @@ export class WorldSensor {
             ? creep.room.name === creep.memory.targetRoom
             : false;
 
-        if (Memory.debug && creep.memory.role === 'hauler') {
+        {
             const dist = closeDropped ? creep.pos.getRangeTo(closeDropped) : -1;
-            console.log(`[Sensor] ${creep.name} nearDropped=${state.nearDropped} closest=${closeDropped ? closeDropped.pos : 'none'} dist=${dist} amount=${closeDropped?.amount ?? 0}`);
+            log('sensor', `${creep.name} nearDropped=${state.nearDropped} closest=${closeDropped ? closeDropped.pos : 'none'} dist=${dist} amount=${closeDropped?.amount ?? 0}`, 'debug', creep.memory.role);
         }
 
 

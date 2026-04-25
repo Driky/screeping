@@ -4,7 +4,7 @@ export type WorldState = {
     atTarget?: boolean;
     nearController?: boolean;
     nearConstruction?: boolean;
-    nearContainer?: boolean;
+    nearContainerWithEnergy?: boolean;
     nearDropped?: boolean;
     nearStorage?: boolean;
     nearLink?: boolean;

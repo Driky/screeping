@@ -1,3 +1,5 @@
+import { log } from "../utils/Logger";
+
 export class SpawnManager {
     public static run(room: Room, sources: Source[], sites: ConstructionSite[], repairTargets: Structure[]): void {
         const spawns = room.find(FIND_MY_SPAWNS);
@@ -92,10 +94,10 @@ export class SpawnManager {
 
         const result = spawn.spawnCreep(body, name, { memory });
         if (result === OK) {
-            console.log(`[Colony] Spawned ${entry.role} (${entry.homeRoom}→${entry.targetRoom ?? 'local'}): ${name}`);
+            log('spawner', `Colony spawned ${entry.role} (${entry.homeRoom}→${entry.targetRoom ?? 'local'}): ${name}`);
             Memory.colony!.spawnQueue = queue.filter(e => e !== entry);
         } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
-            console.log(`[Colony] Failed ${entry.role} queue entry (code: ${result})`);
+            log('spawner', `Colony spawn failed for ${entry.role} (code: ${result})`, 'warn');
         }
     }
 
@@ -111,9 +113,9 @@ export class SpawnManager {
         const result = spawn.spawnCreep(body, name, { memory });
 
         if (result === OK) {
-            console.log(`[Spawn] ${role} (cost: ${this.getBodyCost(body)}, energyCap: ${energyLimit}): ${name}`);
+            log('spawner', `Spawned ${role} (cost: ${this.getBodyCost(body)}, energyCap: ${energyLimit}): ${name}`);
         } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
-            console.log(`[Spawn] Failed ${role} (code: ${result}, cost: ${this.getBodyCost(body)}, energyAvail: ${spawn.room.energyAvailable})`);
+            log('spawner', `Spawn failed for ${role} (code: ${result}, cost: ${this.getBodyCost(body)}, energyAvail: ${spawn.room.energyAvailable})`, 'warn');
         }
     }
 

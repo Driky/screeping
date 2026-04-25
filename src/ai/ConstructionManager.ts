@@ -1,3 +1,5 @@
+import { log } from "../utils/Logger";
+
 export class ConstructionManager {
     private static readonly MAX_SITES_QUEUED = 5;
 
@@ -167,11 +169,11 @@ export class ConstructionManager {
     private static createSite(room: Room, pos: RoomPosition, type: BuildableStructureConstant): boolean {
         const result = room.createConstructionSite(pos, type);
         if (result === OK) {
-            console.log(`[Construction] Placed ${type} at (${pos.x},${pos.y}) in ${room.name}`);
+            log('construction', `Placed ${type} at (${pos.x},${pos.y}) in ${room.name}`);
             return true;
         }
         if (result !== ERR_FULL && result !== ERR_RCL_NOT_ENOUGH) {
-            console.log(`[Construction] Failed ${type} at (${pos.x},${pos.y}): code ${result}`);
+            log('construction', `Failed to place ${type} at (${pos.x},${pos.y}): code ${result}`, 'warn');
         }
         return false;
     }

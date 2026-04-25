@@ -39,6 +39,7 @@ import { TowerManager } from "ai/TowerManager";
 import { ScoutRole } from "roles/ScoutRole";
 import { IAction } from "types/goap";
 import { ErrorMapper } from "utils/ErrorMapper";
+import { log } from "utils/Logger";
 
 const allActions: IAction[] = [
     new BuildAction(),
@@ -81,7 +82,7 @@ const manager = new GOAPManager(allActions);
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrapLoop(() => {
-  console.log(`Current game tick is ${Game.time}`);
+  log('main', `Current game tick is ${Game.time}`, 'debug');
 
   // 1. Cleanup
     for (const name in Memory.creeps) {
@@ -97,7 +98,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
     for (const roomName in Game.rooms) {
         const room = Game.rooms[roomName];
 
-        const WALL_REPAIR_TARGET = 10_000;
+        const WALL_REPAIR_TARGET = 1_000_000;
         const sources = room.find(FIND_SOURCES);
         const sites = room.find(FIND_CONSTRUCTION_SITES);
         const repairTargets = room.find(FIND_STRUCTURES, {
@@ -131,7 +132,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
             // Debug CPU (optionnel)
             const used = Game.cpu.getUsed() - startCpu;
             if (used > 2) {
-                console.log(`[CPU Warning] ${creep.name} a utilisé ${used.toFixed(2)} units.`);
+                log('main', `CPU Warning: ${creep.name} used ${used.toFixed(2)} units`, 'warn');
             }
         }
 

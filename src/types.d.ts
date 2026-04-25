@@ -36,12 +36,15 @@ declare global {
     goal?: WorldState;
     nextPlanTick?: number;
     lastForceDropTick?: number;
+    repairTargetId?: Id<Structure>;
   }
 
   interface Memory {
     uuid: number;
     log: any;
-    debug?: boolean;
+    logLevel?: 'error' | 'warn' | 'info' | 'debug';
+    logSubsystems?: string | string[];
+    logRoles?: string | string[];
     sayEnabled?: boolean;
     sayRoleFilter?: string | string[];
     colony?: ColonyMemory;
