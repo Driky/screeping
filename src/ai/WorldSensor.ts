@@ -35,6 +35,18 @@ export class WorldSensor {
 
         const storage = creep.room.storage;
         state.nearStorage = storage ? creep.pos.isNearTo(storage) : false;
+
+        const links = creep.room.find(FIND_MY_STRUCTURES, {
+            filter: s => s.structureType === STRUCTURE_LINK
+        }) as StructureLink[];
+        const closeLink = creep.pos.findClosestByRange(links);
+        state.nearLink = closeLink ? creep.pos.isNearTo(closeLink) : false;
+
+        const towers = creep.room.find(FIND_MY_STRUCTURES, {
+            filter: s => s.structureType === STRUCTURE_TOWER
+        }) as StructureTower[];
+        const closeTower = creep.pos.findClosestByRange(towers);
+        state.nearTower = closeTower ? creep.pos.isNearTo(closeTower) : false;
         if (Memory.debug && creep.memory.role === 'hauler') {
             const dist = closeDropped ? creep.pos.getRangeTo(closeDropped) : -1;
             console.log(`[Sensor] ${creep.name} nearDropped=${state.nearDropped} closest=${closeDropped ? closeDropped.pos : 'none'} dist=${dist} amount=${closeDropped?.amount ?? 0}`);

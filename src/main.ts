@@ -13,7 +13,12 @@ import { MoveToTargetAction } from "actions/MoveToTargetAction";
 import { PickupAction } from "actions/PickupAction";
 import { TransferAction } from "actions/TransferAction";
 import { UpgradeControllerAction } from "actions/UpgradeControllerAction";
+import { FillTowerAction } from "actions/FillTowerAction";
+import { MoveToLinkAction } from "actions/MoveToLinkAction";
 import { MoveToStorageAction } from "actions/MoveToStorageAction";
+import { MoveToTowerAction } from "actions/MoveToTowerAction";
+import { TransferToLinkAction } from "actions/TransferToLinkAction";
+import { WithdrawFromLinkAction } from "actions/WithdrawFromLinkAction";
 import { TransferToStorageAction } from "actions/TransferToStorageAction";
 import { WithdrawAction } from "actions/WithdrawFromContainerAction";
 import { WithdrawFromStorageAction } from "actions/WithdrawFromStorageAction";
@@ -44,6 +49,11 @@ const allActions: IAction[] = [
     new WithdrawAction(),
     new WithdrawFromStorageAction(),
     new MoveToStorageAction(),
+    new MoveToLinkAction(),
+    new TransferToLinkAction(),
+    new WithdrawFromLinkAction(),
+    new MoveToTowerAction(),
+    new FillTowerAction(),
 ];
 
 const manager = new GOAPManager(allActions);
