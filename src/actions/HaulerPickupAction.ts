@@ -9,25 +9,21 @@ export class HaulerPickupAction extends ActionBase {
 
     public getCost(creep: Creep): number {
         const dropped = this.findDropped(creep);
-        if (dropped) {
-            const amountBonus = Math.min(dropped.amount / 100, 5);
-            return 1 - amountBonus;
-        }
-        return 5;
+        return dropped ? 1 : 5;
     }
 
     public execute(creep: Creep): boolean {
         // Cooldown after a forced drop to break the forceDrop→pickup loop
         if (creep.memory.lastForceDropTick && Game.time - creep.memory.lastForceDropTick < 10) {
-            console.log(`[HaulerPickup] ${creep.name} cooldown (lastDrop=${creep.memory.lastForceDropTick} now=${Game.time}), clearing plan`);
+            if (Memory.debug) console.log(`[HaulerPickup] ${creep.name} cooldown (lastDrop=${creep.memory.lastForceDropTick} now=${Game.time}), clearing plan`);
             creep.memory.plan = [];
             return true;
         }
         const dropped = this.findDropped(creep);
-        console.log(`[HaulerPickup] ${creep.name} target=${dropped ? `${dropped.pos} amount=${dropped.amount} dist=${creep.pos.getRangeTo(dropped)}` : 'null'}`);
+        if (Memory.debug) console.log(`[HaulerPickup] ${creep.name} target=${dropped ? `${dropped.pos} amount=${dropped.amount} dist=${creep.pos.getRangeTo(dropped)}` : 'null'}`);
         if (!dropped) { creep.memory.plan = []; return true; }
         const result = creep.pickup(dropped);
-        console.log(`[HaulerPickup] ${creep.name} pickup result=${result}`);
+        if (Memory.debug) console.log(`[HaulerPickup] ${creep.name} pickup result=${result}`);
         if (result === ERR_NOT_IN_RANGE) { creep.memory.plan = []; return true; }
         return result === OK || creep.store.getFreeCapacity() === 0;
     }

@@ -96,12 +96,19 @@ export class GOAPPlanner {
 
     // Vérifie si l'effet d'une action aide à atteindre l'état requis
     private canActionSatisfyState(action: IAction, state: WorldState): boolean {
-        for (let key in action.effects) {
-            if (state[key as keyof WorldState] === action.effects[key as keyof WorldState]) {
-                return true;
+        let satisfies = false;
+        for (const key in action.effects) {
+            const k = key as keyof WorldState;
+            const effectVal = action.effects[k];
+            const stateVal = state[k];
+            if (stateVal === effectVal) {
+                satisfies = true;
+            } else if (stateVal !== undefined && stateVal !== effectVal) {
+                // Effect would overwrite a condition the backward chain still needs
+                return false;
             }
         }
-        return false;
+        return satisfies;
     }
 
     private reconstructPlan(node: Node): IAction[] {

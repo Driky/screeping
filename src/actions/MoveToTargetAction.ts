@@ -5,7 +5,7 @@ export class MoveToTargetAction extends ActionBase {
     name = "moveToTarget";
     roles = ['hauler', 'builder', 'upgrader', 'harvester'];
     preconditions: WorldState = { atTarget: false };
-    effects: WorldState = { atTarget: true };
+    effects: WorldState = { atTarget: true, nearDropped: false };
 
     public getCost(creep: Creep): number {
         const target = this.findTarget(creep);
