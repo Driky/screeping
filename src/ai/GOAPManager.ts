@@ -11,64 +11,73 @@ export class GOAPManager {
         this.actions = actions;
     }
 
-    /**
-     * Gère le suivi et l'exécution du plan stocké en mémoire
-     */
-    private executePlan(creep: Creep): void {
-        // Sécurité : vérifier si l'index est valide
+    private executePlan(creep: Creep, currentState: WorldState): void {
         const currentIndex = creep.memory.currentActionIndex || 0;
         const plan = creep.memory.plan || [];
 
         if (currentIndex >= plan.length) {
-            // Plan terminé
             creep.memory.plan = [];
             return;
         }
 
         this.drawVisualPlan(creep, plan, currentIndex);
 
-        // Trouver l'action correspondante dans notre liste d'actions injectée
         const actionName = plan[currentIndex];
         const currentAction = this.actions.find(a => a.name === actionName);
 
-        if (currentAction) {
-            // Exécuter l'action
-            const isFinished = currentAction.execute(creep);
-            creep.say(currentAction.name);
-
-            if (isFinished) {
-                // Passer à l'action suivante au prochain tick
-                creep.memory.currentActionIndex = currentIndex + 1;
-
-                // Si c'était la dernière action, on nettoie tout de suite
-                if (creep.memory.currentActionIndex >= plan.length) {
-                    creep.memory.plan = [];
-                    creep.memory.currentActionIndex = 0;
-                }
-            }
-        } else {
-            // Si l'action n'est pas reconnue (ex: renommage), on reset le plan
+        if (!currentAction) {
             creep.memory.plan = [];
+            return;
+        }
+
+        // Guard: if world state diverged from what the plan assumed, replan
+        if (!this.arePreconditionsMet(currentAction, currentState)) {
+            console.log(`[GOAP] ${creep.name}: preconditions for '${actionName}' not met, replanning`);
+            creep.memory.plan = [];
+            creep.memory.currentActionIndex = 0;
+            delete creep.memory.nextPlanTick;
+            return;
+        }
+
+        const isFinished = currentAction.execute(creep);
+        creep.say(currentAction.name);
+
+        if (isFinished) {
+            creep.memory.currentActionIndex = currentIndex + 1;
+            if (creep.memory.currentActionIndex >= plan.length) {
+                creep.memory.plan = [];
+                creep.memory.currentActionIndex = 0;
+            }
         }
     }
 
+    private arePreconditionsMet(action: IAction, state: WorldState): boolean {
+        for (const key in action.preconditions) {
+            if (state[key as keyof WorldState] !== action.preconditions[key as keyof WorldState]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public run(creep: Creep, sources: Source[], sites: ConstructionSite[], depositTargets: AnyStoreStructure[], containers: StructureContainer[], dropped: Resource[], repairTargets: Structure[]): void {
-        // OPTIMISATION 1 : Si le CPU est trop bas (bucket vide), on saute ce tour
         if (Game.cpu.bucket < 500 && Game.cpu.getUsed() > Game.cpu.limit * 0.8) return;
+
+        // Compute current state every tick (needed for precondition validation and replanning)
+        const currentState = WorldSensor.getCurrentState(creep, sources, sites, depositTargets, containers, dropped);
 
         // 1. Vérifier si on a déjà un plan en cours
         if (creep.memory.plan && creep.memory.plan.length > 0) {
-            this.executePlan(creep);
+            this.executePlan(creep, currentState);
             return;
         }
 
         // 2. Gestion du Cooldown de planification
         if (creep.memory.nextPlanTick && Game.time < creep.memory.nextPlanTick) {
-            return; // Trop tôt pour replanifier
+            return;
         }
 
         // 3. Tentative de planification
-        const currentState = WorldSensor.getCurrentState(creep, sources, sites, depositTargets, containers, dropped);
         const goals = this.getGoalsByRole(creep, depositTargets, containers, sites, repairTargets);
 
         const role = creep.memory.role;
