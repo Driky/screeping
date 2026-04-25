@@ -5,8 +5,10 @@ export class SpawnManager {
         if (!spawn) return;
 
         const creeps = room.find(FIND_MY_CREEPS);
+        const haulerCount = creeps.filter(c => c.memory.role === 'hauler').length;
 
         const quotas: { [role: string]: number } = {
+            harvester: haulerCount === 0 ? 1 : 0,
             miner: sources.length,
             hauler: sources.length + 1,
             upgrader: 1,
@@ -18,7 +20,7 @@ export class SpawnManager {
             const count = creeps.filter(c => c.memory.role === role).length;
 
             if (count < quotas[role]) {
-                this.spawn(spawn, role, room.energyCapacityAvailable);
+                this.spawn(spawn, role, room.energyAvailable);
                 break;
             }
         }
@@ -34,6 +36,8 @@ export class SpawnManager {
 
         if (result === OK) {
             console.log(`[Spawn] Nouveau ${role} (Coût: ${this.getBodyCost(body)}) : ${name}`);
+        } else if (result !== ERR_BUSY) {
+            console.log(`[Spawn] Échec ${role} (code: ${result}, coût: ${this.getBodyCost(body)}, énergie: ${spawn.room.energyAvailable})`);
         }
     }
 
@@ -67,6 +71,14 @@ export class SpawnManager {
             while (cost + 150 <= energyLimit && body.length < 15) {
                 body.push(WORK, CARRY);
                 cost += 150;
+            }
+        }
+        else if (role === 'harvester') {
+            body = [WORK, CARRY, MOVE];
+            let cost = 200;
+            while (cost + 100 <= energyLimit && body.length < 15) {
+                body.push(CARRY, MOVE);
+                cost += 100;
             }
         }
         else if (role === 'builder' || role === 'repairer') {
