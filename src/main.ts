@@ -14,8 +14,15 @@ import { PickupAction } from "actions/PickupAction";
 import { TransferAction } from "actions/TransferAction";
 import { UpgradeControllerAction } from "actions/UpgradeControllerAction";
 import { AttackAction } from "actions/AttackAction";
+import { ClaimControllerAction } from "actions/ClaimControllerAction";
 import { FillTowerAction } from "actions/FillTowerAction";
 import { MoveToEnemyAction } from "actions/MoveToEnemyAction";
+import { MoveToForeignControllerAction } from "actions/MoveToForeignControllerAction";
+import { MoveToHomeRoomAction } from "actions/MoveToHomeRoomAction";
+import { MoveToRemoteSourceAction } from "actions/MoveToRemoteSourceAction";
+import { MoveToRoomAction } from "actions/MoveToRoomAction";
+import { RemoteHarvestAction } from "actions/RemoteHarvestAction";
+import { ReserveControllerAction } from "actions/ReserveControllerAction";
 import { MoveToLinkAction } from "actions/MoveToLinkAction";
 import { MoveToStorageAction } from "actions/MoveToStorageAction";
 import { MoveToTowerAction } from "actions/MoveToTowerAction";
@@ -24,10 +31,12 @@ import { WithdrawFromLinkAction } from "actions/WithdrawFromLinkAction";
 import { TransferToStorageAction } from "actions/TransferToStorageAction";
 import { WithdrawAction } from "actions/WithdrawFromContainerAction";
 import { WithdrawFromStorageAction } from "actions/WithdrawFromStorageAction";
+import { ColonyOS } from "ai/ColonyOS";
 import { ConstructionManager } from "ai/ConstructionManager";
 import { GOAPManager } from "ai/GOAPManager";
 import { SpawnManager } from "ai/SpawnManager";
 import { TowerManager } from "ai/TowerManager";
+import { ScoutRole } from "roles/ScoutRole";
 import { IAction } from "types/goap";
 import { ErrorMapper } from "utils/ErrorMapper";
 
@@ -58,6 +67,13 @@ const allActions: IAction[] = [
     new FillTowerAction(),
     new MoveToEnemyAction(),
     new AttackAction(),
+    new MoveToRoomAction(),
+    new MoveToForeignControllerAction(),
+    new ClaimControllerAction(),
+    new ReserveControllerAction(),
+    new MoveToRemoteSourceAction(),
+    new RemoteHarvestAction(),
+    new MoveToHomeRoomAction(),
 ];
 
 const manager = new GOAPManager(allActions);
@@ -73,6 +89,9 @@ export const loop = ErrorMapper.wrapLoop(() => {
             delete Memory.creeps[name];
         }
     }
+
+    // Colony-level orchestration (runs once per tick, outside room loop)
+    ColonyOS.run();
 
     // ON CACHE LES DONNÉES UNE FOIS PAR PIÈCE
     for (const roomName in Game.rooms) {
@@ -102,7 +121,11 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
         for (const creep of roomCreeps) {
             const startCpu = Game.cpu.getUsed();
-            // On passe les données déjà trouvées au manager
+            // Scout uses FSM, not GOAP
+            if (creep.memory.role === 'scout') {
+                ScoutRole.run(creep);
+                continue;
+            }
             manager.run(creep, sources, sites, depositTargets, containers, droppedEnergy, repairTargets);
 
             // Debug CPU (optionnel)
