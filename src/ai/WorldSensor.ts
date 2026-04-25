@@ -47,6 +47,11 @@ export class WorldSensor {
         }) as StructureTower[];
         const closeTower = creep.pos.findClosestByRange(towers);
         state.nearTower = closeTower ? creep.pos.isNearTo(closeTower) : false;
+
+        const hostiles = creep.room.find(FIND_HOSTILE_CREEPS);
+        const closeHostile = creep.pos.findClosestByRange(hostiles);
+        state.nearEnemy = closeHostile ? creep.pos.isNearTo(closeHostile) : false;
+        state.enemyDead = false;
         if (Memory.debug && creep.memory.role === 'hauler') {
             const dist = closeDropped ? creep.pos.getRangeTo(closeDropped) : -1;
             console.log(`[Sensor] ${creep.name} nearDropped=${state.nearDropped} closest=${closeDropped ? closeDropped.pos : 'none'} dist=${dist} amount=${closeDropped?.amount ?? 0}`);

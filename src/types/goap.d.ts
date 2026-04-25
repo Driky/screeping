@@ -9,6 +9,8 @@ export type WorldState = {
     nearStorage?: boolean;
     nearLink?: boolean;
     nearTower?: boolean;
+    nearEnemy?: boolean;
+    enemyDead?: boolean;
     targetFull?: boolean;
     controllerUpgraded?: boolean;
     buildTargetDone?: boolean;

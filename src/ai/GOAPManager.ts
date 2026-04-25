@@ -124,6 +124,9 @@ export class GOAPManager {
             case 'repairer':
                 return [{ structureRepaired: true }];
 
+            case 'defender':
+                return [{ enemyDead: true }];
+
             case 'builder': {
                 const goals: WorldState[] = [];
                 if (sites.length > 0) goals.push({ buildTargetDone: true });

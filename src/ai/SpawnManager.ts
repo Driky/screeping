@@ -26,6 +26,8 @@ export class SpawnManager {
 
         const storageEnergy = room.storage?.store.getUsedCapacity(RESOURCE_ENERGY) ?? 0;
 
+        const hostileCount = room.find(FIND_HOSTILE_CREEPS).length;
+
         // Priority ordering matters: define roles in spawn priority order
         const quotas: { [role: string]: number } = {
             harvester: haulerCount === 0 ? 1 : 0,
@@ -34,6 +36,7 @@ export class SpawnManager {
             upgrader: Math.min(4, 1 + Math.floor(storageEnergy / 100000)),
             builder: sites.length === 0 ? 0 : Math.min(3, Math.ceil(sites.length / 3)),
             repairer: repairTargets.length > 0 ? 1 : 0,
+            defender: hostileCount > 0 ? 1 : 0,
         };
 
         for (const role in quotas) {
@@ -115,6 +118,15 @@ export class SpawnManager {
             while (cost + 100 <= energyLimit && body.length < 15) {
                 body.push(CARRY, MOVE);
                 cost += 100;
+            }
+        }
+        else if (role === 'defender') {
+            // Base: [TOUGH, MOVE, ATTACK, ATTACK, MOVE] = 290 energy
+            body = [TOUGH, MOVE, ATTACK, MOVE];
+            let cost = 230;
+            while (cost + 80 <= energyLimit && body.filter(p => p === ATTACK).length < 6) {
+                body.push(ATTACK, MOVE);
+                cost += 130;
             }
         }
         else if (role === 'builder' || role === 'repairer') {

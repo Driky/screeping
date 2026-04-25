@@ -13,7 +13,9 @@ import { MoveToTargetAction } from "actions/MoveToTargetAction";
 import { PickupAction } from "actions/PickupAction";
 import { TransferAction } from "actions/TransferAction";
 import { UpgradeControllerAction } from "actions/UpgradeControllerAction";
+import { AttackAction } from "actions/AttackAction";
 import { FillTowerAction } from "actions/FillTowerAction";
+import { MoveToEnemyAction } from "actions/MoveToEnemyAction";
 import { MoveToLinkAction } from "actions/MoveToLinkAction";
 import { MoveToStorageAction } from "actions/MoveToStorageAction";
 import { MoveToTowerAction } from "actions/MoveToTowerAction";
@@ -54,6 +56,8 @@ const allActions: IAction[] = [
     new WithdrawFromLinkAction(),
     new MoveToTowerAction(),
     new FillTowerAction(),
+    new MoveToEnemyAction(),
+    new AttackAction(),
 ];
 
 const manager = new GOAPManager(allActions);
