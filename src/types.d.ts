@@ -18,5 +18,7 @@ declare global {
     uuid: number;
     log: any;
     debug?: boolean;
+    sayEnabled?: boolean;
+    sayRoleFilter?: string | string[];
   }
 }

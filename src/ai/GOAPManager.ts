@@ -1,6 +1,7 @@
 import { IAction, WorldState } from "../types/goap";
 import { GOAPPlanner } from "./GOAPPlanner";
 import { WorldSensor } from "./WorldSensor";
+import { creepSay } from "../utils/CreepSpeech";
 
 export class GOAPManager {
     private planner: GOAPPlanner;
@@ -47,7 +48,7 @@ export class GOAPManager {
         }
 
         const isFinished = currentAction.execute(creep);
-        creep.say(currentAction.name);
+        creepSay(creep, currentAction.name);
 
         if (isFinished) {
             creep.memory.currentActionIndex = currentIndex + 1;
@@ -106,7 +107,7 @@ export class GOAPManager {
         } else {
             // ÉCHEC : On attend 10 ticks avant de stresser le CPU à nouveau
             creep.memory.nextPlanTick = Game.time + 10;
-            creep.say('💤 NoPath');
+            creepSay(creep, '💤 NoPath');
         }
     }
 
