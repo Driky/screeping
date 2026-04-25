@@ -5,14 +5,34 @@ export class SpawnManager {
         if (!spawn) return;
 
         const creeps = room.find(FIND_MY_CREEPS);
+        const harvesterCount = creeps.filter(c => c.memory.role === 'harvester').length;
+        const minerCount = creeps.filter(c => c.memory.role === 'miner').length;
         const haulerCount = creeps.filter(c => c.memory.role === 'hauler').length;
 
+        // Bootstrap guard: if nothing can deliver energy to spawn, force a minimal harvester
+        const canFeedSpawn = harvesterCount > 0 || (haulerCount > 0 && minerCount > 0);
+        if (!canFeedSpawn) {
+            this.spawn(spawn, 'harvester', room.energyAvailable, undefined, undefined);
+            return;
+        }
+
+        const containers = room.find(FIND_STRUCTURES, {
+            filter: s => s.structureType === STRUCTURE_CONTAINER
+        }) as StructureContainer[];
+
+        const anyContainerOverfull = containers.some(c =>
+            c.store.getUsedCapacity(RESOURCE_ENERGY) / c.store.getCapacity(RESOURCE_ENERGY) > 0.7
+        );
+
+        const storageEnergy = room.storage?.store.getUsedCapacity(RESOURCE_ENERGY) ?? 0;
+
+        // Priority ordering matters: define roles in spawn priority order
         const quotas: { [role: string]: number } = {
             harvester: haulerCount === 0 ? 1 : 0,
             miner: sources.length,
-            hauler: sources.length + 1,
-            upgrader: 1,
-            builder: sites.length > 0 ? 2 : 0,
+            hauler: sources.length + 1 + (anyContainerOverfull ? 1 : 0),
+            upgrader: Math.min(4, 1 + Math.floor(storageEnergy / 100000)),
+            builder: sites.length === 0 ? 0 : Math.min(3, Math.ceil(sites.length / 3)),
             repairer: repairTargets.length > 0 ? 1 : 0,
         };
 
@@ -39,7 +59,7 @@ export class SpawnManager {
                     assignedSourceId = [...counts.entries()]
                         .sort((a, b) => a[1] - b[1])[0]?.[0] as Id<Source> | undefined;
                 }
-                this.spawn(spawn, role, room.energyAvailable, sourceId, assignedSourceId);
+                this.spawn(spawn, role, room.energyCapacityAvailable, sourceId, assignedSourceId);
                 break;
             }
         }
@@ -54,14 +74,12 @@ export class SpawnManager {
             ...(assignedSourceId !== undefined && { assignedSourceId }),
         };
 
-        // On essaie de spawn, si on n'a pas assez d'énergie actuelle,
-        // le spawn attendra simplement d'être rempli par les harvesters.
         const result = spawn.spawnCreep(body, name, { memory });
 
         if (result === OK) {
-            console.log(`[Spawn] Nouveau ${role} (Coût: ${this.getBodyCost(body)}) : ${name}`);
-        } else if (result !== ERR_BUSY) {
-            console.log(`[Spawn] Échec ${role} (code: ${result}, coût: ${this.getBodyCost(body)}, énergie: ${spawn.room.energyAvailable})`);
+            console.log(`[Spawn] ${role} (cost: ${this.getBodyCost(body)}, energyCap: ${energyLimit}): ${name}`);
+        } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
+            console.log(`[Spawn] Failed ${role} (code: ${result}, cost: ${this.getBodyCost(body)}, energyAvail: ${spawn.room.energyAvailable})`);
         }
     }
 
@@ -69,9 +87,6 @@ export class SpawnManager {
         let body: BodyPartConstant[] = [];
 
         if (role === 'miner') {
-            // Un mineur a besoin de 5 WORK pour vider une source (2 energy/tick par WORK)
-            // 5 WORK + 1 MOVE = 550 energy.
-            // On commence petit et on ajoute des WORK selon l'énergie.
             body = [MOVE, WORK, WORK];
             let cost = 300;
             while (cost + 100 <= energyLimit && body.filter(p => p === WORK).length < 5) {
@@ -80,8 +95,6 @@ export class SpawnManager {
             }
         }
         else if (role === 'hauler') {
-            // Le transporteur doit être rapide : 1 MOVE pour 1 CARRY
-            // 1 MOVE + 1 CARRY = 100 energy.
             let cost = 0;
             while (cost + 100 <= energyLimit && body.length < 20) {
                 body.push(MOVE, CARRY);
@@ -89,7 +102,6 @@ export class SpawnManager {
             }
         }
         else if (role === 'upgrader') {
-            // WORK-heavy: base [MOVE, CARRY, WORK] then add [WORK, CARRY] pairs
             body = [MOVE, CARRY, WORK];
             let cost = 200;
             while (cost + 150 <= energyLimit && body.length < 15) {
@@ -106,7 +118,6 @@ export class SpawnManager {
             }
         }
         else if (role === 'builder' || role === 'repairer') {
-            // Balanced triplets [WORK, CARRY, MOVE] for mobility and carry capacity
             let cost = 0;
             while (cost + 200 <= energyLimit && body.length < 15) {
                 body.push(WORK, CARRY, MOVE);
@@ -114,7 +125,6 @@ export class SpawnManager {
             }
         }
         else {
-            // Harvester fallback: [WORK, CARRY, MOVE] triplets
             let cost = 0;
             while (cost + 200 <= energyLimit && body.length < 15) {
                 body.push(WORK, CARRY, MOVE);
@@ -129,4 +139,3 @@ export class SpawnManager {
         return _.sum(body, p => BODYPART_COST[p]);
     }
 }
-
