@@ -127,6 +127,18 @@ export class GOAPManager {
             case 'defender':
                 return [{ enemyDead: true }];
 
+            case 'claimer':
+                return [{ controllerClaimed: true }];
+
+            case 'reserver':
+                return [{ controllerReserved: true }];
+
+            case 'remoteMiner':
+                return [{ hasEnergy: true }];
+
+            case 'remoteHauler':
+                return [{ targetFull: true }];
+
             case 'builder': {
                 const goals: WorldState[] = [];
                 if (sites.length > 0) goals.push({ buildTargetDone: true });
