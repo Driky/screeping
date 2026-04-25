@@ -1,15 +1,25 @@
 import { ActionBase } from "./ActionBase";
 import { WorldState } from "../types/goap";
 
+const WALL_REPAIR_TARGET = 10_000;
+
 export class RepairAction extends ActionBase {
     name = "repair";
-    preconditions: WorldState = { hasEnergy: true }; // On doit avoir de l'énergie
+    preconditions: WorldState = { hasEnergy: true };
     effects: WorldState = { structureRepaired: true };
 
+    public getCost(creep: Creep): number {
+        const t = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+            filter: (s) => s.hits < s.hitsMax &&
+                (s.structureType !== STRUCTURE_WALL || s.hits < WALL_REPAIR_TARGET)
+        });
+        return t ? creep.pos.getRangeTo(t) : 99;
+    }
+
     public execute(creep: Creep): boolean {
-        // On cherche la structure la plus abîmée (priorité aux containers et routes)
         const target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-            filter: (s) => s.hits < s.hitsMax && s.structureType !== STRUCTURE_WALL
+            filter: (s) => s.hits < s.hitsMax &&
+                (s.structureType !== STRUCTURE_WALL || s.hits < WALL_REPAIR_TARGET)
         });
 
         if (target) {
@@ -18,7 +28,6 @@ export class RepairAction extends ActionBase {
                 creep.moveTo(target, { visualizePathStyle: { stroke: '#ff0000' } });
                 return false;
             }
-            // On s'arrête quand le creep est vide ou la structure réparée
             return creep.store[RESOURCE_ENERGY] === 0 || target.hits === target.hitsMax;
         }
         return true;

@@ -1,19 +1,17 @@
 export class SpawnManager {
-    public static run(room: Room, sources: Source[]): void {
+    public static run(room: Room, sources: Source[], sites: ConstructionSite[], repairTargets: Structure[]): void {
         const spawns = room.find(FIND_MY_SPAWNS);
         const spawn = spawns.find(s => !s.spawning);
         if (!spawn) return;
 
         const creeps = room.find(FIND_MY_CREEPS);
 
-
-        const roomConstructionSites = room.find(FIND_CONSTRUCTION_SITES);
-        // console.log("Room: " + room.name + " construction sites: " + roomConstructionSites);
         const quotas: { [role: string]: number } = {
             miner: sources.length,
             hauler: sources.length + 1,
             upgrader: 1,
-            builder: roomConstructionSites.length > 0 ? 2 : 0,
+            builder: sites.length > 0 ? 2 : 0,
+            repairer: repairTargets.length > 0 ? 1 : 0,
         };
 
         for (const role in quotas) {
@@ -62,8 +60,25 @@ export class SpawnManager {
                 cost += 100;
             }
         }
+        else if (role === 'upgrader') {
+            // WORK-heavy: base [MOVE, CARRY, WORK] then add [WORK, CARRY] pairs
+            body = [MOVE, CARRY, WORK];
+            let cost = 200;
+            while (cost + 150 <= energyLimit && body.length < 15) {
+                body.push(WORK, CARRY);
+                cost += 150;
+            }
+        }
+        else if (role === 'builder' || role === 'repairer') {
+            // Balanced triplets [WORK, CARRY, MOVE] for mobility and carry capacity
+            let cost = 0;
+            while (cost + 200 <= energyLimit && body.length < 15) {
+                body.push(WORK, CARRY, MOVE);
+                cost += 200;
+            }
+        }
         else {
-            // Polyvalent (Upgrader/Builder) : [WORK, CARRY, MOVE]
+            // Harvester fallback: [WORK, CARRY, MOVE] triplets
             let cost = 0;
             while (cost + 200 <= energyLimit && body.length < 15) {
                 body.push(WORK, CARRY, MOVE);

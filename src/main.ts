@@ -1,5 +1,6 @@
 import { BuildAction } from "actions/BuildAction";
 import { DropAction } from "actions/DropAction";
+import { RepairAction } from "actions/RepairAction";
 import { ForceDropAction } from "actions/ForceDropAction";
 import { HaulerPickupAction } from "actions/HaulerPickupAction";
 import { HarvestAction } from "actions/HarvestAction";
@@ -31,6 +32,7 @@ const allActions: IAction[] = [
     new MoveToSourceAction(),
     new MoveToTargetAction(),
     new PickupAction(),
+    new RepairAction(),
     new TransferAction(),
     new UpgradeControllerAction(),
     new WithdrawAction(),
@@ -54,9 +56,14 @@ export const loop = ErrorMapper.wrapLoop(() => {
     for (const roomName in Game.rooms) {
         const room = Game.rooms[roomName];
 
+        const WALL_REPAIR_TARGET = 10_000;
         const sources = room.find(FIND_SOURCES);
-        SpawnManager.run(room, sources);
         const sites = room.find(FIND_CONSTRUCTION_SITES);
+        const repairTargets = room.find(FIND_STRUCTURES, {
+            filter: s => s.hits < s.hitsMax &&
+                (s.structureType !== STRUCTURE_WALL || s.hits < WALL_REPAIR_TARGET)
+        }) as Structure[];
+        SpawnManager.run(room, sources, sites, repairTargets);
         const depositTargets = room.find(FIND_MY_STRUCTURES, {
             filter: (s) => (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION)
                            && (s as AnyStoreStructure).store.getFreeCapacity(RESOURCE_ENERGY) > 0
@@ -72,7 +79,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
         for (const creep of roomCreeps) {
             const startCpu = Game.cpu.getUsed();
             // On passe les données déjà trouvées au manager
-            manager.run(creep, sources, sites, depositTargets, containers, droppedEnergy);
+            manager.run(creep, sources, sites, depositTargets, containers, droppedEnergy, repairTargets);
 
             // Debug CPU (optionnel)
             const used = Game.cpu.getUsed() - startCpu;

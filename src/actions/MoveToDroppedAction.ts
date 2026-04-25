@@ -3,9 +3,9 @@ import { WorldState } from "../types/goap";
 
 export class MoveToDroppedAction extends ActionBase {
     name = "moveToDropped";
-    roles = ['hauler', 'builder'];
+    roles = ['hauler', 'builder', 'upgrader'];
     preconditions: WorldState = { nearDropped: false, hasEnergy: false };
-    effects: WorldState = { nearDropped: true };
+    effects: WorldState = { nearDropped: true, nearController: false };
 
     public getCost(creep: Creep): number {
         const dropped = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {

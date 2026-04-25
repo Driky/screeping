@@ -5,7 +5,7 @@ export class MoveToContainerAction extends ActionBase {
     name = "moveToContainer";
     // On veut aller au container si on n'a pas d'énergie et qu'on n'y est pas déjà
     preconditions: WorldState = { hasEnergy: false, nearContainer: false };
-    effects: WorldState = { nearContainer: true };
+    effects: WorldState = { nearContainer: true, nearController: false };
 
     public getCost(creep: Creep): number {
         const container = this.findContainer(creep);
