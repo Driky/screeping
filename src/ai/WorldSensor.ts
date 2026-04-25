@@ -52,6 +52,11 @@ export class WorldSensor {
         const closeHostile = creep.pos.findClosestByRange(hostiles);
         state.nearEnemy = closeHostile ? creep.pos.isNearTo(closeHostile) : false;
         state.enemyDead = false;
+
+        state.inTargetRoom = creep.memory.targetRoom
+            ? creep.room.name === creep.memory.targetRoom
+            : false;
+
         if (Memory.debug && creep.memory.role === 'hauler') {
             const dist = closeDropped ? creep.pos.getRangeTo(closeDropped) : -1;
             console.log(`[Sensor] ${creep.name} nearDropped=${state.nearDropped} closest=${closeDropped ? closeDropped.pos : 'none'} dist=${dist} amount=${closeDropped?.amount ?? 0}`);
@@ -59,11 +64,13 @@ export class WorldSensor {
 
 
 
-        // Réinitialisation des objectifs finaux
+        // Terminal goal states always start false — set true only by action effects
         state.targetFull = false;
         state.controllerUpgraded = false;
         state.buildTargetDone = false;
         state.structureRepaired = false;
+        state.controllerClaimed = false;
+        state.controllerReserved = false;
 
         return state;
     }
