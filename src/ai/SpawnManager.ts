@@ -63,8 +63,39 @@ export class SpawnManager {
                         .sort((a, b) => a[1] - b[1])[0]?.[0] as Id<Source> | undefined;
                 }
                 this.spawn(spawn, role, room.energyCapacityAvailable, sourceId, assignedSourceId);
-                break;
+                return;
             }
+        }
+
+        // Colony queue: cross-room creeps requested by ColonyOS
+        this.processColonyQueue(spawn, room);
+    }
+
+    private static processColonyQueue(spawn: StructureSpawn, room: Room): void {
+        const queue = Memory.colony?.spawnQueue;
+        if (!queue || queue.length === 0) return;
+
+        // Find highest-priority entry assigned to this room
+        const entry = queue
+            .filter(e => e.homeRoom === room.name)
+            .sort((a, b) => a.priority - b.priority)[0];
+        if (!entry) return;
+
+        const name = `${entry.role}_${Game.time}`;
+        const body = this.generateBody(entry.role, room.energyCapacityAvailable);
+        const memory: CreepMemory = {
+            role: entry.role,
+            homeRoom: entry.homeRoom,
+            ...(entry.targetRoom !== undefined && { targetRoom: entry.targetRoom }),
+            ...(entry.sourceId !== undefined && { sourceId: entry.sourceId as Id<Source> }),
+        };
+
+        const result = spawn.spawnCreep(body, name, { memory });
+        if (result === OK) {
+            console.log(`[Colony] Spawned ${entry.role} (${entry.homeRoom}→${entry.targetRoom ?? 'local'}): ${name}`);
+            Memory.colony!.spawnQueue = queue.filter(e => e !== entry);
+        } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
+            console.log(`[Colony] Failed ${entry.role} queue entry (code: ${result})`);
         }
     }
 
@@ -127,6 +158,20 @@ export class SpawnManager {
             while (cost + 80 <= energyLimit && body.filter(p => p === ATTACK).length < 6) {
                 body.push(ATTACK, MOVE);
                 cost += 130;
+            }
+        }
+        else if (role === 'scout') {
+            // Cheapest fast mover; 2 MOVE = 1 tile/tick on plains, survives swamp
+            body = energyLimit >= 100 ? [MOVE, MOVE] : [MOVE];
+        }
+        else if (role === 'claimer' || role === 'reserver') {
+            // CLAIM body: base [CLAIM, MOVE], scale up to 5 CLAIM for reservation speed
+            body = [CLAIM, MOVE];
+            let cost = 650;
+            const maxClaim = role === 'claimer' ? 1 : 5;
+            while (cost + 650 <= energyLimit && body.filter(p => p === CLAIM).length < maxClaim) {
+                body.push(CLAIM, MOVE);
+                cost += 650;
             }
         }
         else if (role === 'builder' || role === 'repairer') {
