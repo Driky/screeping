@@ -13,10 +13,14 @@ import { MoveToTargetAction } from "actions/MoveToTargetAction";
 import { PickupAction } from "actions/PickupAction";
 import { TransferAction } from "actions/TransferAction";
 import { UpgradeControllerAction } from "actions/UpgradeControllerAction";
+import { MoveToStorageAction } from "actions/MoveToStorageAction";
+import { TransferToStorageAction } from "actions/TransferToStorageAction";
 import { WithdrawAction } from "actions/WithdrawFromContainerAction";
+import { WithdrawFromStorageAction } from "actions/WithdrawFromStorageAction";
 import { ConstructionManager } from "ai/ConstructionManager";
 import { GOAPManager } from "ai/GOAPManager";
 import { SpawnManager } from "ai/SpawnManager";
+import { TowerManager } from "ai/TowerManager";
 import { IAction } from "types/goap";
 import { ErrorMapper } from "utils/ErrorMapper";
 
@@ -35,8 +39,11 @@ const allActions: IAction[] = [
     new PickupAction(),
     new RepairAction(),
     new TransferAction(),
+    new TransferToStorageAction(),
     new UpgradeControllerAction(),
     new WithdrawAction(),
+    new WithdrawFromStorageAction(),
+    new MoveToStorageAction(),
 ];
 
 const manager = new GOAPManager(allActions);
@@ -65,6 +72,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
                 (s.structureType !== STRUCTURE_WALL || s.hits < WALL_REPAIR_TARGET)
         }) as Structure[];
         ConstructionManager.run(room);
+        TowerManager.run(room);
         SpawnManager.run(room, sources, sites, repairTargets);
         const depositTargets = room.find(FIND_MY_STRUCTURES, {
             filter: (s) => (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION)
