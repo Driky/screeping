@@ -11,11 +11,7 @@ export class PickupAction extends ActionBase {
         const dropped = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
             filter: r => r.resourceType === RESOURCE_ENERGY
         });
-        if (dropped) {
-            const amountBonus = Math.min(dropped.amount / 100, 5);
-            return 1 - amountBonus;
-        }
-        return 5;
+        return dropped ? 1 : 5;
     }
 
     public execute(creep: Creep): boolean {

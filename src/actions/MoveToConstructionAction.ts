@@ -4,7 +4,7 @@ import { WorldState } from "../types/goap";
 export class MoveToConstructionAction extends ActionBase {
     name = "moveToConstruction";
     preconditions: WorldState = { nearConstruction: false };
-    effects: WorldState = { nearConstruction: true };
+    effects: WorldState = { nearConstruction: true, nearDropped: false };
 
     public getCost(creep: Creep): number {
         const site = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
