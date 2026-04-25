@@ -3,6 +3,7 @@ import { WorldState } from "../types/goap";
 
 export class TransferAction extends ActionBase {
     name = "transfer";
+    roles = ['hauler', 'builder', 'upgrader', 'harvester'];
     preconditions: WorldState = { hasEnergy: true, atTarget: true };
     effects: WorldState = { targetFull: true };
 

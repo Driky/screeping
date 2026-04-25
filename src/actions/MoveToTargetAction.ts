@@ -3,7 +3,7 @@ import { WorldState } from "../types/goap";
 
 export class MoveToTargetAction extends ActionBase {
     name = "moveToTarget";
-    // On a besoin d'énergie pour vouloir aller vers une cible de dépôt
+    roles = ['hauler', 'builder', 'upgrader', 'harvester'];
     preconditions: WorldState = { atTarget: false };
     effects: WorldState = { atTarget: true };
 

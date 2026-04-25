@@ -3,6 +3,7 @@ import { WorldState } from "../types/goap";
 
 export class WithdrawAction extends ActionBase {
     name = "withdraw";
+    roles = ['hauler', 'builder', 'upgrader', 'repairer'];
     preconditions: WorldState = { nearContainer: true, hasEnergy: false };
     effects: WorldState = { hasEnergy: true };
 

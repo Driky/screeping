@@ -3,9 +3,9 @@ import { WorldState } from "../types/goap";
 
 export class MoveToContainerAction extends ActionBase {
     name = "moveToContainer";
-    // On veut aller au container si on n'a pas d'énergie et qu'on n'y est pas déjà
+    roles = ['hauler', 'builder', 'upgrader', 'repairer'];
     preconditions: WorldState = { hasEnergy: false, nearContainer: false };
-    effects: WorldState = { nearContainer: true, nearController: false };
+    effects: WorldState = { nearContainer: true };
 
     public getCost(creep: Creep): number {
         const container = this.findContainer(creep);

@@ -5,6 +5,7 @@ const WALL_REPAIR_TARGET = 10_000;
 
 export class RepairAction extends ActionBase {
     name = "repair";
+    roles = ['repairer', 'builder'];
     preconditions: WorldState = { hasEnergy: true };
     effects: WorldState = { structureRepaired: true };
 
