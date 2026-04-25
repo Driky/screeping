@@ -14,6 +14,7 @@ import { PickupAction } from "actions/PickupAction";
 import { TransferAction } from "actions/TransferAction";
 import { UpgradeControllerAction } from "actions/UpgradeControllerAction";
 import { WithdrawAction } from "actions/WithdrawFromContainerAction";
+import { ConstructionManager } from "ai/ConstructionManager";
 import { GOAPManager } from "ai/GOAPManager";
 import { SpawnManager } from "ai/SpawnManager";
 import { IAction } from "types/goap";
@@ -63,6 +64,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
             filter: s => s.hits < s.hitsMax &&
                 (s.structureType !== STRUCTURE_WALL || s.hits < WALL_REPAIR_TARGET)
         }) as Structure[];
+        ConstructionManager.run(room);
         SpawnManager.run(room, sources, sites, repairTargets);
         const depositTargets = room.find(FIND_MY_STRUCTURES, {
             filter: (s) => (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION)
