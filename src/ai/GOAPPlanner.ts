@@ -30,8 +30,10 @@ export class GOAPPlanner {
                 return null;
             }
 
-            // Trier par coût (plus petit en premier)
-            openList.sort((a, b) => a.cost - b.cost);
+            // Sort by f = g + h (A*): prefer nodes closer to start state
+            openList.sort((a, b) =>
+                (a.cost + this.heuristic(a.state, start)) - (b.cost + this.heuristic(b.state, start))
+            );
             let current = openList.shift()!;
 
             if (this.inState(current.state, start)) {
@@ -39,7 +41,9 @@ export class GOAPPlanner {
             }
 
             closedList.push(JSON.stringify(current.state));
-            console.log(`[GOAP] ${creep.name} (${creep.memory.role}) node: ${JSON.stringify(current.state)}`);
+            if (Memory.debug) {
+                console.log(`[GOAP] ${creep.name} (${creep.memory.role}) node: ${JSON.stringify(current.state)}`);
+            }
             // Explorer les actions qui pourraient mener à cet état
             for (const action of actions) {
                 if (this.canActionSatisfyState(action, current.state)) {
@@ -72,6 +76,15 @@ export class GOAPPlanner {
             console.log(`[GOAP] État actuel: ${JSON.stringify(start)}`);
         }
         return null; // Aucun plan trouvé
+    }
+
+    private heuristic(nodeState: WorldState, currentState: WorldState): number {
+        let h = 0;
+        for (const key in nodeState) {
+            const k = key as keyof WorldState;
+            if (nodeState[k] !== undefined && currentState[k] !== nodeState[k]) h++;
+        }
+        return h;
     }
 
     // Vérifie si toutes les conditions de 'required' sont vraies dans 'current'
