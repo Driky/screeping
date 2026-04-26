@@ -27,14 +27,8 @@ export class ScoutRole {
     }
 
     private static moveToward(creep: Creep, targetRoom: string): void {
-        const exit = creep.room.findExitTo(targetRoom);
-        if (exit === ERR_NO_PATH || exit === ERR_INVALID_ARGS) {
-            log('scout', `${creep.name}: no path to ${targetRoom}`, 'warn');
-            delete creep.memory.targetRoom;
-            return;
-        }
-        const exitPos = creep.pos.findClosestByRange(exit as FindConstant);
-        if (exitPos) creep.moveTo(exitPos, { visualizePathStyle: { stroke: '#aaaaff' } });
+        const dest = new RoomPosition(25, 25, targetRoom);
+        creep.moveTo(dest, { visualizePathStyle: { stroke: '#aaaaff' }, reusePath: 10 });
     }
 
     private static pickTarget(creep: Creep): string | null {

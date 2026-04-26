@@ -35,6 +35,7 @@ export class GOAPManager {
         // Guard: if world state diverged from what the plan assumed, replan
         if (!this.arePreconditionsMet(currentAction, currentState)) {
             if (this.effectAlreadyAchieved(currentAction, currentState)) {
+                log('manager', `${creep.name}: '${actionName}' effects already achieved — advancing`, 'debug', creep.memory.role);
                 // Action achieved its effect before executor called it — advance cleanly
                 creep.memory.currentActionIndex = currentIndex + 1;
                 if (creep.memory.currentActionIndex >= plan.length) {

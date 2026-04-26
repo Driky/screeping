@@ -87,6 +87,10 @@ export class WorldSensor {
         state.controllerClaimed = false;
         state.controllerReserved = false;
 
+        if (creep.memory.role === 'claimer' || creep.memory.role === 'reserver') {
+            log('sensor', `${creep.name} pos=${creep.pos} room=${creep.room.name} targetRoom=${creep.memory.targetRoom} plan=${JSON.stringify(creep.memory.plan)} planIdx=${creep.memory.currentActionIndex} inTargetRoom=${state.inTargetRoom}`, 'debug', creep.memory.role);
+        }
+
         return state;
     }
 }

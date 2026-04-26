@@ -19,13 +19,8 @@ export class MoveToRoomAction extends ActionBase {
 
         if (creep.room.name === target) return true;
 
-        const exit = creep.room.findExitTo(target);
-        if (exit === ERR_NO_PATH || exit === ERR_INVALID_ARGS) {
-            creep.memory.plan = [];
-            return true;
-        }
-        const exitPos = creep.pos.findClosestByRange(exit as FindConstant);
-        if (exitPos) creep.moveTo(exitPos, { visualizePathStyle: { stroke: '#aaaaff' } });
+        const dest = new RoomPosition(25, 25, target);
+        creep.moveTo(dest, { visualizePathStyle: { stroke: '#aaaaff' }, reusePath: 10 });
         return false;
     }
 }
