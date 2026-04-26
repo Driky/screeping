@@ -21,7 +21,8 @@ export class MoveToLinkAction extends ActionBase {
 
     private findLink(creep: Creep): StructureLink | null {
         return creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
-            filter: s => s.structureType === STRUCTURE_LINK
+            filter: s => s.structureType === STRUCTURE_LINK &&
+                (s as StructureLink).store.getFreeCapacity(RESOURCE_ENERGY) > 0
         }) as StructureLink | null;
     }
 }
