@@ -51,6 +51,15 @@ export class ConstructionManager {
 
         if (remaining <= 0) return;
 
+        // Container adjacent to controller (upgrade container)
+        const ctrl = room.controller;
+        if (ctrl && remaining > 0 && !this.hasStructureOrSiteNear(room, ctrl.pos, STRUCTURE_CONTAINER)) {
+            const pos = this.findAdjacentOpen(room, ctrl.pos);
+            if (pos && this.createSite(room, pos, STRUCTURE_CONTAINER)) remaining--;
+        }
+
+        if (remaining <= 0) return;
+
         // Tower(s)
         const towerTarget = this.towerTargetForRCL(rcl);
         const existingTowers = room.find(FIND_MY_STRUCTURES, {

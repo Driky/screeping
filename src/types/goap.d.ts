@@ -8,6 +8,7 @@ export type WorldState = {
     nearDropped?: boolean;
     nearStorage?: boolean;
     nearLink?: boolean;
+    nearUpgradeContainer?: boolean;
     nearTower?: boolean;
     nearEnemy?: boolean;
     enemyDead?: boolean;

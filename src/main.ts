@@ -29,6 +29,8 @@ import { MoveToTowerAction } from "actions/MoveToTowerAction";
 import { TransferToLinkAction } from "actions/TransferToLinkAction";
 import { WithdrawFromLinkAction } from "actions/WithdrawFromLinkAction";
 import { TransferToStorageAction } from "actions/TransferToStorageAction";
+import { FillUpgradeContainerAction } from "actions/FillUpgradeContainerAction";
+import { MoveToUpgradeContainerAction } from "actions/MoveToUpgradeContainerAction";
 import { WithdrawAction } from "actions/WithdrawFromContainerAction";
 import { WithdrawFromStorageAction } from "actions/WithdrawFromStorageAction";
 import { ColonyOS } from "ai/ColonyOS";
@@ -75,6 +77,8 @@ const allActions: IAction[] = [
     new MoveToRemoteSourceAction(),
     new RemoteHarvestAction(),
     new MoveToHomeRoomAction(),
+    new FillUpgradeContainerAction(),
+    new MoveToUpgradeContainerAction(),
 ];
 
 const manager = new GOAPManager(allActions);

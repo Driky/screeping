@@ -44,6 +44,14 @@ export class WorldSensor {
         const closeLink = creep.pos.findClosestByRange(links);
         state.nearLink = closeLink ? creep.pos.isNearTo(closeLink) : false;
 
+        const ctrl = creep.room.controller;
+        if (ctrl) {
+            const upgradeContainer = containers.find(c => c.pos.getRangeTo(ctrl) <= 3);
+            state.nearUpgradeContainer = upgradeContainer ? creep.pos.isNearTo(upgradeContainer) : false;
+        } else {
+            state.nearUpgradeContainer = false;
+        }
+
         const towers = creep.room.find(FIND_MY_STRUCTURES, {
             filter: s => s.structureType === STRUCTURE_TOWER
         }) as StructureTower[];

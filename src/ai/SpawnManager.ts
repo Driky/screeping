@@ -35,7 +35,7 @@ export class SpawnManager {
             harvester: haulerCount === 0 ? 1 : 0,
             miner: sources.length,
             hauler: sources.length + 1 + (anyContainerOverfull ? 1 : 0),
-            upgrader: Math.min(4, 1 + Math.floor(storageEnergy / 100000)),
+            upgrader: Math.min(4, 2 + Math.floor(storageEnergy / 100000)),
             builder: sites.length === 0 ? 0 : Math.min(3, Math.ceil(sites.length / 3)),
             repairer: repairTargets.length > 0 ? 1 : 0,
             defender: hostileCount > 0 ? 1 : 0,
@@ -83,8 +83,18 @@ export class SpawnManager {
             .sort((a, b) => a.priority - b.priority)[0];
         if (!entry) return;
 
-        const name = `${entry.role}_${Game.time}`;
         const body = this.generateBody(entry.role, room.energyCapacityAvailable);
+        const bodyCost = this.getBodyCost(body);
+
+        if (bodyCost > room.energyCapacityAvailable) {
+            log('spawner',
+                `Colony: ${entry.role} for ${entry.targetRoom} costs ${bodyCost} but ${room.name} capacity is ${room.energyCapacityAvailable} — needs more extensions`,
+                'warn'
+            );
+            return;
+        }
+
+        const name = `${entry.role}_${Game.time}`;
         const memory: CreepMemory = {
             role: entry.role,
             homeRoom: entry.homeRoom,
