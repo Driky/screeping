@@ -173,8 +173,12 @@ export class SpawnManager {
             }
         }
         else if (role === 'scout') {
-            // Cheapest fast mover; 2 MOVE = 1 tile/tick on plains, survives swamp
-            body = energyLimit >= 100 ? [MOVE, MOVE] : [MOVE];
+            body = [MOVE];
+            let cost = 50;
+            while (cost + 50 <= energyLimit && body.length < 10) {
+                body.push(MOVE);
+                cost += 50;
+            }
         }
         else if (role === 'claimer' || role === 'reserver') {
             // CLAIM body: base [CLAIM, MOVE], scale up to 5 CLAIM for reservation speed
