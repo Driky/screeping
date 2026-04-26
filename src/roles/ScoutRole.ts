@@ -32,16 +32,29 @@ export class ScoutRole {
     }
 
     private static pickTarget(creep: Creep): string | null {
+        if (!Memory.colony) return null;
+        const surveyed = Memory.colony.surveyedRooms;
         const homeRoom = creep.memory.homeRoom ?? creep.room.name;
-        const surveyed = Memory.colony!.surveyedRooms;
-        const exits = Game.map.describeExits(homeRoom);
-        for (const dir in exits) {
-            const roomName = exits[dir as unknown as ExitKey];
-            if (!roomName) continue;
-            if (roomName === homeRoom) continue;
-            const survey = surveyed[roomName];
-            if (!survey || Game.time - survey.lastSurveyTick > this.SURVEY_EXPIRY_TICKS) {
-                return roomName;
+        const MAX_RANGE = 3;
+
+        // BFS from homeRoom — find nearest unsurveyed room within MAX_RANGE hops.
+        // This lets the scout discover rooms 2+ hops away (e.g. E49N56 via E49N55).
+        const visited = new Set<string>([homeRoom]);
+        const queue: Array<{ room: string; dist: number }> = [{ room: homeRoom, dist: 0 }];
+
+        while (queue.length > 0) {
+            const { room: current, dist } = queue.shift()!;
+            if (dist >= MAX_RANGE) continue;
+            const exits = Game.map.describeExits(current);
+            for (const dir in exits) {
+                const roomName = exits[dir as unknown as ExitKey];
+                if (!roomName || visited.has(roomName)) continue;
+                visited.add(roomName);
+                const survey = surveyed[roomName];
+                if (!survey || Game.time - survey.lastSurveyTick > this.SURVEY_EXPIRY_TICKS) {
+                    return roomName;
+                }
+                queue.push({ room: roomName, dist: dist + 1 });
             }
         }
         return null;
