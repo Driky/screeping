@@ -52,18 +52,22 @@ Each creep plans its own action sequence each tick using a backward A\* planner:
 |---|---|---|
 | harvester | `targetFull` | harvest → transfer to spawn/extension |
 | miner | `targetFull` | harvest → drop near container |
-| hauler | `targetFull` | pickup/withdraw → transfer to spawn/extension/storage/link/tower |
-| upgrader | `controllerUpgraded` | withdraw (container/storage/link) → upgrade controller |
+| hauler | `targetFull` | pickup/withdraw → transfer to spawn/extension/storage/link/tower; also fill upgrade container |
+| upgrader | `controllerUpgraded` | withdraw (upgrade container/container/storage/link) → upgrade controller |
 | builder | `buildTargetDone` | withdraw → build; fallback to repair or transfer |
 | repairer | `structureRepaired` | withdraw → repair |
 | defender | `enemyDead` | move to enemy → attack |
+| remoteMiner | `hasEnergy` | move to remote source → harvest |
+| remoteHauler | `targetFull` | move to home room → pickup/withdraw → transfer |
+| claimer | `controllerClaimed` | move to foreign controller → claim |
+| reserver | `controllerReserved` | move to foreign controller → reserve |
 
 ### Managers
 
 | Manager | Responsibility |
 |---|---|
-| **SpawnManager** | Dynamic quotas per role; bootstrap guard prevents deadlock when all creeps die; bodies sized to `energyCapacityAvailable` |
-| **ConstructionManager** | Places extensions/containers/towers/storage/terminal as RCL rises; max 5 queued sites |
+| **SpawnManager** | Dynamic quotas per role (upgrader base 3, scales to 4 with storage energy); bootstrap guard prevents deadlock when all creeps die; bodies sized to `energyCapacityAvailable` |
+| **ConstructionManager** | Places extensions/containers/towers/storage/terminal/upgrade-container as RCL rises; max 5 queued sites |
 | **TowerManager** | Towers attack nearest hostile, heal most-damaged friendly, repair structures below 50% hits |
 
 ### Key Files
@@ -89,7 +93,12 @@ src/
 Set via the Screeps console:
 
 ```js
-Memory.debug = true          // verbose GOAP planner + sensor logs
-Memory.sayEnabled = true     // creeps say their current action
-Memory.sayRoleFilter = 'hauler'  // limit say to one role (or array)
+// Logging (structured logger)
+Memory.logLevel = 'debug'           // 'error' | 'warn' | 'info' (default) | 'debug'
+Memory.logSubsystems = 'manager'    // filter to one subsystem, or array ['manager','planner']
+Memory.logRoles = 'builder'         // filter to one role, or array ['builder','hauler']
+
+// Creep speech
+Memory.sayEnabled = true            // creeps say their current action
+Memory.sayRoleFilter = 'hauler'     // limit say to one role (or array)
 ```

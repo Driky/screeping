@@ -3,7 +3,7 @@ import { WorldState } from "../types/goap";
 
 export class MoveToConstructionAction extends ActionBase {
     name = "moveToConstruction";
-    preconditions: WorldState = { nearConstruction: false };
+    preconditions: WorldState = { nearConstruction: false, hasEnergy: true };
     effects: WorldState = { nearConstruction: true, nearDropped: false };
 
     public getCost(creep: Creep): number {
