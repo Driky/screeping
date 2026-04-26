@@ -34,6 +34,15 @@ export class GOAPManager {
 
         // Guard: if world state diverged from what the plan assumed, replan
         if (!this.arePreconditionsMet(currentAction, currentState)) {
+            if (this.effectAlreadyAchieved(currentAction, currentState)) {
+                // Action achieved its effect before executor called it — advance cleanly
+                creep.memory.currentActionIndex = currentIndex + 1;
+                if (creep.memory.currentActionIndex >= plan.length) {
+                    creep.memory.plan = [];
+                    creep.memory.currentActionIndex = 0;
+                }
+                return;
+            }
             for (const key in currentAction.preconditions) {
                 const k = key as keyof WorldState;
                 if (currentState[k] !== currentAction.preconditions[k]) {
@@ -62,6 +71,16 @@ export class GOAPManager {
         for (const key in action.preconditions) {
             if (state[key as keyof WorldState] !== action.preconditions[key as keyof WorldState]) {
                 return false;
+            }
+        }
+        return true;
+    }
+
+    private effectAlreadyAchieved(action: IAction, state: WorldState): boolean {
+        for (const key in action.preconditions) {
+            const k = key as keyof WorldState;
+            if (state[k] !== action.preconditions[k]) {
+                if (action.effects[k] !== state[k]) return false;
             }
         }
         return true;
