@@ -21,9 +21,10 @@ export class MoveToContainerAction extends ActionBase {
 
     private findContainer(creep: Creep): StructureContainer | null {
         const ctrl = creep.room.controller;
+        const isUpgrader = creep.memory.role === 'upgrader';
         const all = (creep.room.find(FIND_STRUCTURES, {
             filter: s => s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 0
-        }) as StructureContainer[]).filter(c => !ctrl || c.pos.getRangeTo(ctrl) > 3);
+        }) as StructureContainer[]).filter(c => isUpgrader || !ctrl || c.pos.getRangeTo(ctrl) > 3);
         if (!all.length) return null;
 
         if (creep.memory.assignedSourceId) {

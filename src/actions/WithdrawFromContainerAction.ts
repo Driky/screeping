@@ -11,11 +11,12 @@ export class WithdrawAction extends ActionBase {
 
     public execute(creep: Creep): boolean {
         const ctrl = creep.room.controller;
+        const isUpgrader = creep.memory.role === 'upgrader';
         const container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
             filter: s =>
                 s.structureType === STRUCTURE_CONTAINER &&
                 (s as StructureContainer).store[RESOURCE_ENERGY] > 0 &&
-                (!ctrl || s.pos.getRangeTo(ctrl) > 3)
+                (isUpgrader || !ctrl || s.pos.getRangeTo(ctrl) > 3)
         }) as StructureContainer;
 
         if (container) {

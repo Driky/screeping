@@ -29,8 +29,9 @@ export class WorldSensor {
         state.atTarget = depositTarget ? creep.pos.isNearTo(depositTarget) : false;
 
         const ctrl = creep.room.controller;
+        const isUpgrader = creep.memory.role === 'upgrader';
         const energyContainers = containers.filter(c =>
-            c.store[RESOURCE_ENERGY] > 0 && (!ctrl || c.pos.getRangeTo(ctrl) > 3)
+            c.store[RESOURCE_ENERGY] > 0 && (isUpgrader || !ctrl || c.pos.getRangeTo(ctrl) > 3)
         );
         const closeContainer = creep.pos.findClosestByRange(energyContainers);
         state.nearContainerWithEnergy = closeContainer ? creep.pos.isNearTo(closeContainer) : false;
