@@ -120,7 +120,8 @@ export class GOAPManager {
             log('manager', `${creep.name} new plan: [${plan.map(a => a.name).join(' -> ')}]`, 'info', creep.memory.role);
             creep.memory.plan = plan.map(a => a.name);
             creep.memory.currentActionIndex = 0;
-            delete creep.memory.nextPlanTick; // On efface le cooldown si succès
+            delete creep.memory.nextPlanTick;
+            this.executePlan(creep, currentState); // Execute immediately — avoids idle tick with no moveTo
         } else {
             // ÉCHEC : On attend 10 ticks avant de stresser le CPU à nouveau
             creep.memory.nextPlanTick = Game.time + 10;
