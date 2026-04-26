@@ -10,8 +10,12 @@ export class WithdrawAction extends ActionBase {
     public getCost(creep: Creep): number { return 3; }
 
     public execute(creep: Creep): boolean {
+        const ctrl = creep.room.controller;
         const container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-            filter: s => s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 0
+            filter: s =>
+                s.structureType === STRUCTURE_CONTAINER &&
+                (s as StructureContainer).store[RESOURCE_ENERGY] > 0 &&
+                (!ctrl || s.pos.getRangeTo(ctrl) > 3)
         }) as StructureContainer;
 
         if (container) {
