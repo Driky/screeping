@@ -1,5 +1,6 @@
 import { ActionBase } from "./ActionBase";
 import { WorldState } from "../types/goap";
+import { getUsefulDropped } from "utils/DroppedFilter";
 
 export class MoveToDroppedAction extends ActionBase {
     name = "moveToDropped";
@@ -20,9 +21,7 @@ export class MoveToDroppedAction extends ActionBase {
     }
 
     private findDropped(creep: Creep): Resource | null {
-        const all = creep.room.find(FIND_DROPPED_RESOURCES, {
-            filter: r => r.resourceType === RESOURCE_ENERGY
-        });
+        const all = getUsefulDropped(creep);
         if (!all.length) return null;
 
         if (creep.memory.assignedSourceId) {

@@ -1,5 +1,6 @@
 import { WorldState } from "types/goap";
 import { log } from "utils/Logger";
+import { getUsefulDropped } from "utils/DroppedFilter";
 
 export class WorldSensor {
     /**
@@ -36,28 +37,7 @@ export class WorldSensor {
         const closeContainer = creep.pos.findClosestByRange(energyContainers);
         state.nearContainerWithEnergy = closeContainer ? creep.pos.isNearTo(closeContainer) : false;
 
-        const storageEnergy = creep.room.storage?.store[RESOURCE_ENERGY] ?? 0;
-        const creepCapacity = creep.store.getCapacity(RESOURCE_ENERGY);
-        const role = creep.memory.role;
-        let usefulDropped: Resource[];
-        if (role === 'upgrader') {
-            const upgradeContainerHasEnergy = ctrl
-                ? containers.some(c => c.pos.getRangeTo(ctrl) <= 3 && c.store[RESOURCE_ENERGY] > 0)
-                : false;
-            if (upgradeContainerHasEnergy) {
-                usefulDropped = [];
-            } else if (storageEnergy >= creepCapacity) {
-                usefulDropped = dropped.filter(r => r.amount >= creepCapacity / 2);
-            } else {
-                usefulDropped = dropped;
-            }
-        } else if (role === 'builder' || role === 'repairer') {
-            usefulDropped = storageEnergy >= creepCapacity
-                ? dropped.filter(r => r.amount >= creepCapacity / 2)
-                : dropped;
-        } else {
-            usefulDropped = dropped;
-        }
+        const usefulDropped = getUsefulDropped(creep);
         const closeDropped = creep.pos.findClosestByRange(usefulDropped);
         state.nearDropped = closeDropped ? creep.pos.isNearTo(closeDropped) : false;
 
