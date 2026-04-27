@@ -7,7 +7,7 @@ export class FillUpgradeContainerAction extends ActionBase {
     preconditions: WorldState = { hasEnergy: true, nearUpgradeContainer: true };
     effects: WorldState = { targetFull: true };
 
-    public getCost(_creep: Creep): number { return 4; }
+    public getCost(_creep: Creep): number { return 1; }
 
     public execute(creep: Creep): boolean {
         const ctrl = creep.room.controller;

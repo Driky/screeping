@@ -67,6 +67,12 @@ export class ColonyOS {
         if (survey.controllerOwner && survey.controllerOwner !== 'Invader') return;
         if (survey.hasHostiles) return;
 
+        const ownedRooms = Object.values(Game.rooms).filter(r => r.controller?.my).length;
+        if (ownedRooms >= Game.gcl.level) {
+            log('colony', `GCL ${Game.gcl.level} too low to claim ${expansionTarget} — own ${ownedRooms}/${Game.gcl.level} rooms`, 'warn');
+            return;
+        }
+
         const claimerAlive = _.any(Game.creeps, c =>
             c.memory.role === 'claimer' && c.memory.targetRoom === expansionTarget
         );

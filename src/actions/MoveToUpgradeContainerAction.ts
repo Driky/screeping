@@ -9,7 +9,7 @@ export class MoveToUpgradeContainerAction extends ActionBase {
 
     public getCost(creep: Creep): number {
         const target = this.findUpgradeContainer(creep);
-        return target ? creep.pos.getRangeTo(target) + 4 : 99;
+        return target ? creep.pos.getRangeTo(target) : 99;
     }
 
     public execute(creep: Creep): boolean {
