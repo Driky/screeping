@@ -36,7 +36,29 @@ export class WorldSensor {
         const closeContainer = creep.pos.findClosestByRange(energyContainers);
         state.nearContainerWithEnergy = closeContainer ? creep.pos.isNearTo(closeContainer) : false;
 
-        const closeDropped = creep.pos.findClosestByRange(dropped);
+        const storageEnergy = creep.room.storage?.store[RESOURCE_ENERGY] ?? 0;
+        const creepCapacity = creep.store.getCapacity(RESOURCE_ENERGY);
+        const role = creep.memory.role;
+        let usefulDropped: Resource[];
+        if (role === 'upgrader') {
+            const upgradeContainerHasEnergy = ctrl
+                ? containers.some(c => c.pos.getRangeTo(ctrl) <= 3 && c.store[RESOURCE_ENERGY] > 0)
+                : false;
+            if (upgradeContainerHasEnergy) {
+                usefulDropped = [];
+            } else if (storageEnergy >= creepCapacity) {
+                usefulDropped = dropped.filter(r => r.amount >= creepCapacity / 2);
+            } else {
+                usefulDropped = dropped;
+            }
+        } else if (role === 'builder' || role === 'repairer') {
+            usefulDropped = storageEnergy >= creepCapacity
+                ? dropped.filter(r => r.amount >= creepCapacity / 2)
+                : dropped;
+        } else {
+            usefulDropped = dropped;
+        }
+        const closeDropped = creep.pos.findClosestByRange(usefulDropped);
         state.nearDropped = closeDropped ? creep.pos.isNearTo(closeDropped) : false;
 
         const storage = creep.room.storage;
@@ -81,6 +103,7 @@ export class WorldSensor {
 
         // Terminal goal states always start false — set true only by action effects
         state.targetFull = false;
+        state.upgradeContainerFilled = false;
         state.controllerUpgraded = false;
         state.buildTargetDone = false;
         state.structureRepaired = false;
