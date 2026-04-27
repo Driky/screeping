@@ -5,7 +5,7 @@ export class FillUpgradeContainerAction extends ActionBase {
     name = "fillUpgradeContainer";
     roles = ['hauler'];
     preconditions: WorldState = { hasEnergy: true, nearUpgradeContainer: true };
-    effects: WorldState = { targetFull: true };
+    effects: WorldState = { upgradeContainerFilled: true };
 
     public getCost(_creep: Creep): number { return 1; }
 

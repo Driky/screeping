@@ -16,6 +16,7 @@ export type WorldState = {
     controllerClaimed?: boolean;
     controllerReserved?: boolean;
     targetFull?: boolean;
+    upgradeContainerFilled?: boolean;
     controllerUpgraded?: boolean;
     buildTargetDone?: boolean;
     structureRepaired?: boolean;

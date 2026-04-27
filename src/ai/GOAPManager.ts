@@ -129,21 +129,24 @@ export class GOAPManager {
         }
     }
 
-    private getGoalsByRole(creep: Creep, _depositTargets: AnyStoreStructure[], containers: StructureContainer[], sites: ConstructionSite[], repairTargets: Structure[]): WorldState[] {
+    private getGoalsByRole(creep: Creep, depositTargets: AnyStoreStructure[], containers: StructureContainer[], sites: ConstructionSite[], repairTargets: Structure[]): WorldState[] {
         switch (creep.memory.role) {
             case 'harvester':
             case 'miner':
                 return [{ targetFull: true }];
 
             case 'hauler': {
-                const ctrl = creep.room.controller;
-                const upgradeContainerNeedsFilling = ctrl
-                    ? containers.some(c =>
-                        c.pos.getRangeTo(ctrl) <= 3 &&
-                        c.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
-                    : false;
-                if (upgradeContainerNeedsFilling) {
-                    return [{ targetFull: true, nearUpgradeContainer: true }, { targetFull: true }];
+                const spawnsNeedEnergy = depositTargets.length > 0;
+                if (!spawnsNeedEnergy) {
+                    const ctrl = creep.room.controller;
+                    const upgradeContainerNeedsFilling = ctrl
+                        ? containers.some(c =>
+                            c.pos.getRangeTo(ctrl) <= 3 &&
+                            c.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
+                        : false;
+                    if (upgradeContainerNeedsFilling) {
+                        return [{ upgradeContainerFilled: true }, { targetFull: true }];
+                    }
                 }
                 return [{ targetFull: true }];
             }
