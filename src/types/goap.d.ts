@@ -7,6 +7,7 @@ export type WorldState = {
     nearContainerWithEnergy?: boolean;
     nearDropped?: boolean;
     nearStorage?: boolean;
+    storageHasEnergy?: boolean;
     nearLink?: boolean;
     nearUpgradeContainer?: boolean;
     nearTower?: boolean;

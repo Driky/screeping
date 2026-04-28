@@ -42,6 +42,7 @@ import { ScoutRole } from "roles/ScoutRole";
 import { IAction } from "types/goap";
 import { ErrorMapper } from "utils/ErrorMapper";
 import { log } from "utils/Logger";
+import { startTick, endTick, measure } from "utils/Profiler";
 
 const allActions: IAction[] = [
     new BuildAction(),
@@ -87,6 +88,7 @@ const manager = new GOAPManager(allActions);
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrapLoop(() => {
   log('main', `Current game tick is ${Game.time}`, 'debug');
+  startTick();
 
   // 1. Cleanup
     for (const name in Memory.creeps) {
@@ -96,7 +98,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
     }
 
     // Colony-level orchestration (runs once per tick, outside room loop)
-    ColonyOS.run();
+    measure('colony', () => ColonyOS.run());
 
     // ON CACHE LES DONNÉES UNE FOIS PAR PIÈCE
     for (const roomName in Game.rooms) {
@@ -109,9 +111,9 @@ export const loop = ErrorMapper.wrapLoop(() => {
             filter: s => s.hits < s.hitsMax &&
                 (s.structureType !== STRUCTURE_WALL || s.hits < WALL_REPAIR_TARGET)
         }) as Structure[];
-        ConstructionManager.run(room);
-        TowerManager.run(room);
-        SpawnManager.run(room, sources, sites, repairTargets);
+        measure('construction', () => ConstructionManager.run(room));
+        measure('tower', () => TowerManager.run(room));
+        measure('spawner', () => SpawnManager.run(room, sources, sites, repairTargets));
         const depositTargets = room.find(FIND_MY_STRUCTURES, {
             filter: (s) => (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION)
                            && (s as AnyStoreStructure).store.getFreeCapacity(RESOURCE_ENERGY) > 0
@@ -141,4 +143,6 @@ export const loop = ErrorMapper.wrapLoop(() => {
         }
 
     }
+
+    endTick();
 });

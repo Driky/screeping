@@ -1,5 +1,6 @@
 import { IAction, WorldState } from "../types/goap";
 import { log } from "../utils/Logger";
+import { recordPlannerResult } from "../utils/Profiler";
 
 interface Node {
     state: WorldState;
@@ -28,6 +29,7 @@ export class GOAPPlanner {
             iterations++;
             if (iterations > MAX_ITERATIONS) {
                 log('goaplanner', `${creep.name}: max iterations reached, aborting`, 'warn');
+                recordPlannerResult(creep.memory.role, iterations, false);
                 return null;
             }
 
@@ -38,7 +40,9 @@ export class GOAPPlanner {
             let current = openList.shift()!;
 
             if (this.inState(current.state, start)) {
-                return this.reconstructPlan(current);
+                const plan = this.reconstructPlan(current);
+                recordPlannerResult(creep.memory.role, iterations, true);
+                return plan;
             }
 
             closedList.push(JSON.stringify(current.state));
@@ -73,6 +77,7 @@ export class GOAPPlanner {
         } else {
             log('goaplanner', `${creep.name}: no plan — no path to goal. State: ${JSON.stringify(start)}`, 'warn');
         }
+        recordPlannerResult(creep.memory.role, iterations, false);
         return null;
     }
 

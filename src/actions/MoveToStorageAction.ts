@@ -4,7 +4,7 @@ import { WorldState } from "../types/goap";
 export class MoveToStorageAction extends ActionBase {
     name = "moveToStorage";
     roles = ['builder', 'upgrader', 'repairer', 'hauler'];
-    preconditions: WorldState = { nearStorage: false, hasEnergy: false };
+    preconditions: WorldState = { storageHasEnergy: true, nearStorage: false, hasEnergy: false };
     effects: WorldState = { nearStorage: true };
 
     public getCost(creep: Creep): number {

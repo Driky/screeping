@@ -43,6 +43,7 @@ export class WorldSensor {
 
         const storage = creep.room.storage;
         state.nearStorage = storage ? creep.pos.isNearTo(storage) : false;
+        state.storageHasEnergy = !!(storage && storage.store[RESOURCE_ENERGY] > 0);
 
         const links = creep.room.find(FIND_MY_STRUCTURES, {
             filter: s => s.structureType === STRUCTURE_LINK &&

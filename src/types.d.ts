@@ -48,5 +48,7 @@ declare global {
     sayEnabled?: boolean;
     sayRoleFilter?: string | string[];
     colony?: ColonyMemory;
+    profiling?: boolean;
+    profilingVerbose?: boolean;
   }
 }

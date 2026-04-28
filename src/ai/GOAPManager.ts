@@ -3,6 +3,7 @@ import { GOAPPlanner } from "./GOAPPlanner";
 import { WorldSensor } from "./WorldSensor";
 import { creepSay } from "../utils/CreepSpeech";
 import { log } from "../utils/Logger";
+import { measure, recordCreep, recordCooldownSkip } from "../utils/Profiler";
 
 export class GOAPManager {
     private planner: GOAPPlanner;
@@ -90,17 +91,24 @@ export class GOAPManager {
     public run(creep: Creep, sources: Source[], sites: ConstructionSite[], depositTargets: AnyStoreStructure[], containers: StructureContainer[], dropped: Resource[], repairTargets: Structure[]): void {
         if (Game.cpu.bucket < 500 && Game.cpu.getUsed() > Game.cpu.limit * 0.8) return;
 
+        const _cpuStart = Game.cpu.getUsed();
+
         // Compute current state every tick (needed for precondition validation and replanning)
-        const currentState = WorldSensor.getCurrentState(creep, sources, sites, depositTargets, containers, dropped);
+        const currentState = measure('world-sensor', () =>
+            WorldSensor.getCurrentState(creep, sources, sites, depositTargets, containers, dropped)
+        );
 
         // 1. Vérifier si on a déjà un plan en cours
         if (creep.memory.plan && creep.memory.plan.length > 0) {
-            this.executePlan(creep, currentState);
+            measure('goap-exec', () => this.executePlan(creep, currentState));
+            recordCreep(creep.name, creep.memory.role, Game.cpu.getUsed() - _cpuStart, 'exec');
             return;
         }
 
         // 2. Gestion du Cooldown de planification
         if (creep.memory.nextPlanTick && Game.time < creep.memory.nextPlanTick) {
+            recordCooldownSkip();
+            recordCreep(creep.name, creep.memory.role, Game.cpu.getUsed() - _cpuStart, 'cooldown');
             return;
         }
 
@@ -110,23 +118,27 @@ export class GOAPManager {
         const role = creep.memory.role;
         const availableActions = this.actions.filter(a => !a.roles || a.roles.includes(role));
 
-        let plan: IAction[] | null = null;
-        for (const goal of goals) {
-            plan = this.planner.buildPlan(creep, availableActions, currentState, goal);
-            if (plan && plan.length > 0) break;
-        }
+        const plan: IAction[] | null = measure('goap-plan', () => {
+            for (const goal of goals) {
+                const p = this.planner.buildPlan(creep, availableActions, currentState, goal);
+                if (p && p.length > 0) return p;
+            }
+            return null;
+        });
 
         if (plan && plan.length > 0) {
             log('manager', `${creep.name} new plan: [${plan.map(a => a.name).join(' -> ')}]`, 'info', creep.memory.role);
             creep.memory.plan = plan.map(a => a.name);
             creep.memory.currentActionIndex = 0;
             delete creep.memory.nextPlanTick;
-            this.executePlan(creep, currentState); // Execute immediately — avoids idle tick with no moveTo
+            measure('goap-exec', () => this.executePlan(creep, currentState)); // Execute immediately — avoids idle tick with no moveTo
         } else {
             // ÉCHEC : On attend 10 ticks avant de stresser le CPU à nouveau
             creep.memory.nextPlanTick = Game.time + 10;
             creepSay(creep, '💤 NoPath');
         }
+
+        recordCreep(creep.name, creep.memory.role, Game.cpu.getUsed() - _cpuStart, 'planned');
     }
 
     private getGoalsByRole(creep: Creep, depositTargets: AnyStoreStructure[], containers: StructureContainer[], sites: ConstructionSite[], repairTargets: Structure[]): WorldState[] {
