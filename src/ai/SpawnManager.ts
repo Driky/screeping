@@ -35,7 +35,7 @@ export class SpawnManager {
             harvester: haulerCount === 0 ? 1 : 0,
             miner: sources.length,
             hauler: sources.length + 1 + (anyContainerOverfull ? 1 : 0),
-            upgrader: Math.min(4, 4 + Math.floor(storageEnergy / 100000)),
+            upgrader: Math.min(4, 2 + Math.floor(storageEnergy / 100000)),
             builder: sites.length === 0 ? 0 : Math.min(3, Math.ceil(sites.length / 3)),
             repairer: repairTargets.length > 0 ? 1 : 0,
             defender: hostileCount > 0 ? 1 : 0,
